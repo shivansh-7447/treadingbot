@@ -5,9 +5,9 @@
   "main": "bot.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node dashboard/server.js",
+    "start": "node server.js",
     "bot": "node bot.js",
-    "dashboard": "node dashboard/server.js",
+    "dashboard": "node server.js",
     "check": "node -e \"require('./bot'); console.log('Bot modules loaded successfully.')\"",
     "test": "node --test"
   },
