@@ -1,0 +1,3462 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Crypto Trading Bot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #060a12;
+        --bg-elevated: #0c1424;
+        --card: rgba(16, 26, 46, 0.82);
+        --card-strong: rgba(20, 34, 58, 0.94);
+        --muted: #8fa3c4;
+        --text: #f0f5ff;
+        --accent: #4dc4ff;
+        --accent-dim: #2a8ab8;
+        --accent-soft: rgba(77, 196, 255, 0.12);
+        --green: #2ee59d;
+        --red: #ff7a8c;
+        --amber: #ffc56d;
+        --violet: #b388ff;
+        --border: rgba(100, 140, 200, 0.14);
+        --border-strong: rgba(100, 140, 200, 0.22);
+        --shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+        --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.28);
+        --radius-lg: 22px;
+        --radius-md: 14px;
+        --radius-sm: 10px;
+        --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, monospace;
+        --nav-h: 56px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: calc(var(--nav-h) + 16px);
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-sans);
+        font-size: 15px;
+        line-height: 1.5;
+        letter-spacing: -0.01em;
+        background:
+          radial-gradient(ellipse 100% 80% at 50% -30%, rgba(77, 196, 255, 0.09), transparent 55%),
+          radial-gradient(ellipse 60% 50% at 100% 20%, rgba(179, 136, 255, 0.06), transparent 45%),
+          radial-gradient(ellipse 50% 40% at 0% 60%, rgba(46, 229, 157, 0.05), transparent 40%),
+          linear-gradient(180deg, #060a12 0%, #0a101c 40%, #0d1526 100%);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1540px;
+        margin: 0 auto;
+        padding: 20px 28px 48px;
+      }
+
+      .hero {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        align-items: flex-start;
+        margin-bottom: 16px;
+        padding: 28px 30px;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-lg);
+        background:
+          linear-gradient(145deg, rgba(77, 196, 255, 0.1) 0%, transparent 42%),
+          linear-gradient(180deg, rgba(22, 36, 62, 0.95), rgba(10, 18, 32, 0.92));
+        box-shadow: var(--shadow-soft);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero h1 {
+        font-size: clamp(1.55rem, 2.5vw, 2rem);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        width: 320px;
+        height: 320px;
+        right: -100px;
+        top: -140px;
+        background: radial-gradient(circle, rgba(77, 196, 255, 0.18), transparent 68%);
+        pointer-events: none;
+      }
+
+      .dash-nav {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 8px;
+        padding: 10px 14px;
+        margin-bottom: 20px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: rgba(8, 14, 26, 0.82);
+        backdrop-filter: blur(16px) saturate(1.2);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+      }
+
+      .dash-nav a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 8px 12px;
+        border-radius: 999px;
+        transition: color 0.15s ease, background 0.15s ease;
+      }
+
+      .dash-nav a:hover {
+        color: var(--text);
+        background: var(--accent-soft);
+      }
+
+      .kpi-deck {
+        grid-column: span 12;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 4px;
+      }
+
+      .card.kpi-card {
+        min-height: 128px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+
+      .paper-banner {
+        margin-bottom: 18px;
+        padding: 16px 20px;
+        border: 1px solid rgba(255, 197, 109, 0.32);
+        border-radius: var(--radius-md);
+        background:
+          linear-gradient(135deg, rgba(255, 197, 109, 0.12), rgba(77, 196, 255, 0.06)),
+          rgba(14, 22, 38, 0.92);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .paper-banner strong {
+        color: var(--amber);
+        font-weight: 700;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      .card > h3,
+      .section-title h3 {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .subtitle {
+        color: var(--muted);
+        margin-top: 8px;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .subtitle.small {
+        font-size: 12px;
+        margin-top: 6px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      button {
+        border: 0;
+        border-radius: var(--radius-sm);
+        padding: 10px 18px;
+        font-family: var(--font-sans);
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition:
+          transform 0.16s ease,
+          box-shadow 0.16s ease,
+          background 0.16s ease,
+          opacity 0.16s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+        color: #031018;
+        box-shadow: 0 4px 20px rgba(77, 196, 255, 0.25);
+      }
+
+      .danger {
+        background: linear-gradient(135deg, #ff5c73, #c93d52);
+        color: white;
+        box-shadow: 0 4px 18px rgba(255, 92, 115, 0.22);
+      }
+
+      .ghost {
+        background: rgba(30, 48, 78, 0.85);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .btn-sm {
+        padding: 7px 14px;
+        font-size: 12px;
+        border-radius: 8px;
+      }
+
+      .btn-view {
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 8px;
+        background: rgba(77, 196, 255, 0.12);
+        color: var(--accent);
+        border: 1px solid rgba(77, 196, 255, 0.35);
+      }
+
+      .btn-view:hover {
+        background: rgba(77, 196, 255, 0.2);
+        color: var(--text);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 16px;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 22px 24px;
+        box-shadow: var(--shadow-soft);
+        backdrop-filter: blur(18px) saturate(1.15);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), transparent 42%);
+        pointer-events: none;
+      }
+
+      .span-3 { grid-column: span 3; }
+      .span-4 { grid-column: span 4; }
+      .span-5 { grid-column: span 5; }
+      .span-6 { grid-column: span 6; }
+      .span-7 { grid-column: span 7; }
+      .span-8 { grid-column: span 8; }
+      .span-12 { grid-column: span 12; }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .kpi {
+        font-family: var(--font-mono);
+        font-size: clamp(1.5rem, 2.4vw, 1.85rem);
+        font-weight: 600;
+        margin-top: 12px;
+        letter-spacing: -0.02em;
+      }
+
+      .good { color: var(--green); }
+      .bad { color: var(--red); }
+
+      .list,
+      table {
+        width: 100%;
+      }
+
+      table {
+        border-collapse: collapse;
+        margin-top: 12px;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      thead th {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .table-scroll {
+        max-height: min(52vh, 520px);
+        overflow: auto;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        margin-top: 16px;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .table-scroll table {
+        margin-top: 0;
+      }
+
+      .table-scroll thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: rgba(10, 18, 32, 0.97);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 1px 0 var(--border);
+      }
+
+      .table-scroll--scanner {
+        max-height: min(38vh, 360px);
+      }
+
+      .trade-actions {
+        white-space: nowrap;
+      }
+
+      .modal-root {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .modal-root[hidden] {
+        display: none !important;
+      }
+
+      .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(2, 6, 14, 0.72);
+        backdrop-filter: blur(6px);
+      }
+
+      .modal-panel {
+        position: relative;
+        width: min(560px, 100%);
+        max-height: min(86vh, 720px);
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-lg);
+        background: linear-gradient(180deg, rgba(22, 36, 58, 0.98), rgba(12, 20, 36, 0.98));
+        box-shadow: var(--shadow);
+      }
+
+      .modal-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 20px 22px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .modal-head h2 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .modal-close {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border-radius: var(--radius-sm);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--muted);
+        font-size: 22px;
+        line-height: 1;
+      }
+
+      .modal-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text);
+      }
+
+      .modal-body {
+        padding: 18px 22px 22px;
+        overflow-y: auto;
+        font-size: 14px;
+      }
+
+      .modal-panel--confirm {
+        width: min(440px, 100%);
+        border-top: 3px solid rgba(255, 122, 140, 0.65);
+      }
+
+      .modal-panel--launch {
+        width: min(480px, 100%);
+        border-top: 3px solid rgba(77, 196, 255, 0.55);
+      }
+
+      .confirm-summary {
+        padding: 14px 16px;
+        border-radius: var(--radius-md);
+        background: rgba(6, 10, 18, 0.55);
+        border: 1px solid var(--border);
+        margin-bottom: 14px;
+      }
+
+      .confirm-summary dl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 6px 14px;
+        margin: 0;
+        font-size: 13px;
+      }
+
+      .confirm-summary dt {
+        color: var(--muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.04em;
+      }
+
+      .confirm-summary dd {
+        margin: 0;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .mode-launch-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .mode-launch-list li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: var(--radius-sm);
+        background: rgba(77, 196, 255, 0.06);
+        border: 1px solid var(--border);
+        font-size: 14px;
+      }
+
+      .mode-launch-list li::before {
+        content: "✓";
+        color: var(--green);
+        font-weight: 700;
+      }
+
+      .modal-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+      }
+
+      .modal-actions .btn-wide {
+        min-width: 140px;
+      }
+
+      .trade-detail-exit-cta {
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+      }
+
+      .btn-launch-all {
+        font-weight: 600;
+        padding: 10px 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(77, 196, 255, 0.4);
+        background: linear-gradient(135deg, rgba(77, 196, 255, 0.2), rgba(179, 136, 255, 0.14));
+        color: var(--text);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 13px;
+        letter-spacing: 0.02em;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+        box-shadow: 0 4px 20px rgba(77, 196, 255, 0.12);
+      }
+
+      .btn-launch-all:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 28px rgba(77, 196, 255, 0.18);
+      }
+
+      .detail-dl {
+        display: grid;
+        grid-template-columns: minmax(120px, 38%) 1fr;
+        gap: 8px 16px;
+        margin: 0 0 16px;
+      }
+
+      .detail-dl dt {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .detail-dl dd {
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        word-break: break-word;
+      }
+
+      .detail-pre {
+        margin: 0;
+        padding: 14px;
+        border-radius: var(--radius-sm);
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        line-height: 1.45;
+        overflow-x: auto;
+        max-height: 220px;
+        overflow-y: auto;
+      }
+
+      .feed-prose p {
+        margin: 0 0 10px;
+        line-height: 1.55;
+      }
+
+      .feed-prose p:last-child {
+        margin-bottom: 0;
+      }
+
+      .feed-prose strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      .open-pos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .open-pos-card {
+        padding: 16px 18px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: rgba(7, 15, 27, 0.75);
+      }
+
+      .open-pos-card h4 {
+        margin: 0 0 10px;
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .open-pos-meta {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.55;
+        margin-bottom: 12px;
+      }
+
+      .open-pos-meta strong {
+        color: var(--text);
+      }
+
+      .clickable-row {
+        cursor: pointer;
+        transition: background 0.16s ease;
+      }
+
+      .clickable-row:hover {
+        background: rgba(93, 208, 255, 0.08);
+      }
+
+      .pill {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(24, 38, 64, 0.92);
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .pill.good {
+        background: rgba(33, 192, 122, 0.22);
+        color: var(--green);
+      }
+
+      .pill.bad {
+        background: rgba(255, 108, 129, 0.18);
+        color: var(--red);
+      }
+
+      .approval {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        margin-top: 12px;
+      }
+
+      .opportunity-item {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .opportunity-item:last-child {
+        border-bottom: 0;
+      }
+
+      .approval-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .small {
+        font-size: 12px;
+      }
+
+      .auth-overlay {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(4, 10, 18, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 80;
+      }
+
+      .auth-panel {
+        width: min(420px, calc(100vw - 32px));
+        background: linear-gradient(180deg, rgba(26, 42, 72, 0.98), rgba(14, 24, 42, 0.98));
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-lg);
+        padding: 26px 24px;
+        box-shadow: var(--shadow);
+      }
+
+      .auth-panel h2 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .auth-panel input {
+        width: 100%;
+        margin-top: 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px;
+        background: #0d1626;
+        color: var(--text);
+      }
+
+      .banner {
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: #16233b;
+        color: var(--muted);
+      }
+
+      .control-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-top: 12px;
+      }
+
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .field-group input {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        background: rgba(8, 16, 28, 0.92);
+        color: var(--text);
+      }
+
+      .mode-toggle {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .mode-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(8, 16, 28, 0.92);
+        transition: border-color 0.18s ease, background 0.18s ease;
+      }
+
+      .mode-option.active {
+        border-color: rgba(93, 208, 255, 0.55);
+        background: var(--accent-soft);
+        box-shadow: 0 0 0 1px rgba(93, 208, 255, 0.2), 0 14px 28px rgba(7, 19, 32, 0.35);
+      }
+
+      .mode-option input {
+        margin: 0;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .metric-tile {
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: rgba(7, 15, 27, 0.72);
+      }
+
+      .metric-label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .metric-value {
+        font-size: 24px;
+        font-weight: 700;
+        margin-top: 6px;
+      }
+
+      .strategy-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .strategy-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .strategy-panel {
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(10, 20, 35, 0.96), rgba(7, 15, 27, 0.88));
+      }
+
+      .strategy-panel h4 {
+        margin: 0;
+      }
+
+      .strategy-panel p {
+        margin-top: 6px;
+      }
+
+      .strategy-note {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .summary-strip {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .summary-box {
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: rgba(8, 16, 28, 0.78);
+      }
+
+      .summary-box strong {
+        display: block;
+        font-size: 22px;
+        margin-top: 6px;
+      }
+
+      .active-mode-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px 18px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(93, 208, 255, 0.12), rgba(10, 18, 30, 0.88));
+      }
+
+      .active-mode-banner.auto {
+        border-color: rgba(93, 208, 255, 0.3);
+        background: linear-gradient(135deg, rgba(93, 208, 255, 0.18), rgba(10, 18, 30, 0.9));
+      }
+
+      .active-mode-banner.ultra_ai {
+        border-color: rgba(186, 122, 255, 0.35);
+        background: linear-gradient(135deg, rgba(186, 122, 255, 0.2), rgba(10, 18, 30, 0.9));
+      }
+
+      .active-mode-banner.ema_scalping {
+        border-color: rgba(33, 192, 122, 0.35);
+        background: linear-gradient(135deg, rgba(33, 192, 122, 0.2), rgba(10, 18, 30, 0.9));
+      }
+
+      .active-mode-banner strong {
+        display: block;
+        font-size: 26px;
+        margin-top: 4px;
+      }
+
+      .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: #07111d;
+      }
+
+      .status-chip.auto {
+        background: #5dd0ff;
+      }
+
+      .status-chip.ultra_ai {
+        background: #ba7aff;
+      }
+
+      .status-chip.ema_scalping {
+        background: #21c07a;
+      }
+
+      .mode-highlight {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 8px;
+      }
+
+      .chart-toolbar {
+        display: grid;
+        grid-template-columns: 1.2fr 1.2fr 0.8fr 0.8fr auto;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .chart-toolbar select,
+      .chart-toolbar button {
+        width: 100%;
+      }
+
+      .field-group select {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        background: rgba(8, 16, 28, 0.92);
+        color: var(--text);
+      }
+
+      .chart-meta {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .chart-panel {
+        margin-top: 14px;
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: rgba(8, 16, 28, 0.76);
+      }
+
+      .export-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+      }
+
+      .chart-container {
+        width: 100%;
+        height: 280px;
+        display: block;
+      }
+
+      .chart-container.compare {
+        height: 260px;
+      }
+
+      .compare-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .compare-chip {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: rgba(8, 16, 28, 0.82);
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      .compare-chip.active {
+        border-color: rgba(93, 208, 255, 0.55);
+        background: rgba(93, 208, 255, 0.14);
+        color: var(--text);
+      }
+
+      @media (max-width: 960px) {
+        .span-3,
+        .span-4,
+        .span-5,
+        .span-6,
+        .span-7,
+        .span-8,
+        .span-12 {
+          grid-column: span 12;
+        }
+
+        .hero {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .mode-toggle,
+        .metric-grid,
+        .strategy-grid,
+        .summary-strip,
+        .chart-toolbar,
+        .chart-meta {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="authOverlay" class="auth-overlay">
+      <div class="auth-panel">
+        <h2>Dashboard Login</h2>
+        <p class="subtitle">Authenticate to view bot state and issue trading actions.</p>
+        <input id="loginUsername" placeholder="Username" value="admin" />
+        <input id="loginPassword" type="password" placeholder="Password" />
+        <div class="actions" style="margin-top: 14px;">
+          <button class="primary" onclick="login()">Sign In</button>
+        </div>
+        <div id="loginMessage" class="banner small"></div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="paper-banner">
+        <strong>Paper Mode Active - No Real Orders</strong>
+        <p class="subtitle">Wallet keys may be connected for testing, but the bot is locked to paper execution until you explicitly disable paper mode later.</p>
+      </div>
+      <div class="hero">
+        <div>
+          <h1>AI Crypto Trading Bot</h1>
+          <p class="subtitle">Spot-only safe mode with AI scanning, manual approval, and live dashboard.</p>
+        </div>
+        <div class="actions">
+          <span id="socketStatus" class="pill">WebSocket offline</span>
+          <span id="authStatus" class="pill">Auth pending</span>
+          <button type="button" class="btn-launch-all" onclick="openStartAllModesModal()">
+            Auto + Ultra + EMA
+          </button>
+          <button class="primary" onclick="postAction('/api/start')">Start Bot</button>
+          <button class="danger" onclick="postAction('/api/stop')">Stop Bot</button>
+          <button class="ghost" onclick="postAction('/api/scan')">Run Scan</button>
+          <button class="ghost" onclick="runBacktest()">Backtest</button>
+          <button class="ghost" onclick="logout()">Logout</button>
+        </div>
+      </div>
+
+      <nav class="dash-nav" aria-label="Dashboard sections">
+        <a href="#section-overview">Overview</a>
+        <a href="#section-modes">Modes</a>
+        <a href="#section-performance">Performance</a>
+        <a href="#section-capital">Capital</a>
+        <a href="#section-strategy">Strategy</a>
+        <a href="#section-strategy-controls">Controls</a>
+        <a href="#section-portfolio">Portfolio</a>
+        <a href="#section-intel">Intelligence</a>
+        <a href="#section-ops">Approvals</a>
+        <a href="#section-charts">Charts</a>
+        <a href="#section-open-positions">Positions</a>
+        <a href="#section-trades">Trades</a>
+      </nav>
+
+      <div class="grid">
+        <div class="kpi-deck" id="section-overview">
+          <div class="card kpi-card">
+            <h3>Bot Status</h3>
+            <div id="botStatus" class="kpi">Loading...</div>
+            <p id="lastScan" class="muted small"></p>
+          </div>
+
+          <div class="card kpi-card">
+            <h3>Realized P&amp;L</h3>
+            <div id="realizedPnl" class="kpi">0</div>
+            <p id="winRate" class="muted small"></p>
+          </div>
+
+          <div class="card kpi-card">
+            <h3>Live P&amp;L</h3>
+            <div id="livePnl" class="kpi">0</div>
+            <p id="livePnlMeta" class="muted small"></p>
+          </div>
+
+          <div class="card kpi-card">
+            <h3>Daily Trades</h3>
+            <div id="dailyTrades" class="kpi">0</div>
+            <p id="dailyTradesHelp" class="muted small">Safe limit enforced in dashboard and bot engine.</p>
+          </div>
+
+          <div class="card kpi-card">
+            <h3>Sentiment</h3>
+            <div id="sentimentScore" class="kpi">0</div>
+            <p id="fearGreed" class="muted small"></p>
+          </div>
+        </div>
+
+        <div class="card span-12" id="section-modes">
+          <div class="section-title">
+            <div>
+              <h3>Mode Control Center</h3>
+              <p class="subtitle">Control the three existing modes without changing their internal strategy logic.</p>
+            </div>
+            <span id="modeControlStatus" class="pill">Mode control ready</span>
+          </div>
+          <div class="actions" style="margin-bottom:12px;">
+            <button type="button" class="btn-launch-all" onclick="openStartAllModesModal()">
+              Start Auto + Ultra + EMA
+            </button>
+            <button class="primary" onclick="startAllModes()">Start All Modes</button>
+            <button class="danger" onclick="stopAllModes()">Stop All Modes</button>
+            <button class="ghost" onclick="startSelectedModes()">Start Selected Modes</button>
+          </div>
+          <div class="strategy-grid">
+            <div class="strategy-panel">
+              <h4>Mode 1</h4>
+              <p class="strategy-note">Auto AI</p>
+              <label><input id="selectModeAuto" type="checkbox" /> Select for batch start</label>
+              <div class="actions" style="margin-top:12px;">
+                <button class="primary" onclick="startModeControl('auto')">Start Mode 1</button>
+                <button class="danger" onclick="stopModeControl('auto')">Stop Mode 1</button>
+              </div>
+              <div id="modeAutoState" class="banner small">Waiting for state.</div>
+            </div>
+            <div class="strategy-panel">
+              <h4>Mode 2</h4>
+              <p class="strategy-note">Ultra AI</p>
+              <label><input id="selectModeUltra" type="checkbox" /> Select for batch start</label>
+              <div class="actions" style="margin-top:12px;">
+                <button class="primary" onclick="startModeControl('ultra_ai')">Start Mode 2</button>
+                <button class="danger" onclick="stopModeControl('ultra_ai')">Stop Mode 2</button>
+              </div>
+              <div id="modeUltraState" class="banner small">Waiting for state.</div>
+            </div>
+            <div class="strategy-panel">
+              <h4>Mode 3</h4>
+              <p class="strategy-note">Professional EMA Scalping</p>
+              <label><input id="selectModeEma" type="checkbox" /> Select for batch start</label>
+              <div class="actions" style="margin-top:12px;">
+                <button class="primary" onclick="startModeControl('ema_scalping')">Start Mode 3</button>
+                <button class="danger" onclick="stopModeControl('ema_scalping')">Stop Mode 3</button>
+              </div>
+              <div id="modeEmaState" class="banner small">Waiting for state.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card span-12" id="section-performance">
+          <div class="section-title">
+            <div>
+              <h3>Mode Comparison Dashboard</h3>
+              <p class="subtitle">Live comparison of the three existing modes using their recorded trade history.</p>
+            </div>
+            <span id="modeComparisonStatus" class="pill">Waiting for performance data</span>
+          </div>
+          <div class="summary-strip">
+            <div class="summary-box">
+              <span class="metric-label">Best Performing</span>
+              <strong id="bestModeLabel">-</strong>
+            </div>
+            <div class="summary-box">
+              <span class="metric-label">Worst Performing</span>
+              <strong id="worstModeLabel">-</strong>
+            </div>
+          </div>
+          <div class="table-scroll table-scroll--scanner">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mode</th>
+                  <th>Profit</th>
+                  <th>Loss</th>
+                  <th>Win Rate</th>
+                  <th>Total Trades</th>
+                  <th>Drawdown</th>
+                  <th>Net P&amp;L</th>
+                </tr>
+              </thead>
+              <tbody id="modeComparisonTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card span-12" id="section-capital">
+          <div class="section-title">
+            <div>
+              <h3>Capital Growth Engine</h3>
+              <p class="subtitle">
+                Auto-compounding base, streak-based risk scaling, 50% profit reinvestment, drawdown protection, and
+                profit-lock risk reduction.
+              </p>
+            </div>
+            <span id="capitalGrowthStatusPill" class="pill">—</span>
+          </div>
+          <div class="metric-grid" style="margin-bottom: 14px">
+            <div class="metric-tile">
+              <div class="metric-label">Effective capital (sizing)</div>
+              <div id="cgEffectiveCapital" class="metric-value">—</div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-label">Full equity</div>
+              <div id="cgFullEquity" class="metric-value">—</div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-label">Scaled auto risk</div>
+              <div id="cgAutoRisk" class="metric-value">—</div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-label">Reinvest layer (50% of wins)</div>
+              <div id="cgReinvestLayer" class="metric-value">—</div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-label">Cumulative reinvested</div>
+              <div id="cgCumulativeReinvested" class="metric-value">—</div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-label">Drawdown vs peak</div>
+              <div id="cgDrawdown" class="metric-value">—</div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-label">Win / loss streak</div>
+              <div id="cgStreaks" class="metric-value">—</div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-label">EMA risk multiplier</div>
+              <div id="cgEmaMult" class="metric-value">—</div>
+            </div>
+          </div>
+          <p id="capitalGrowthPauseLine" class="muted" style="margin-bottom: 10px; display: none"></p>
+          <canvas
+            id="capitalGrowthChart"
+            width="1200"
+            height="160"
+            style="width: 100%; max-width: 100%; height: 160px; border-radius: 12px; background: rgba(0, 0, 0, 0.2)"
+          ></canvas>
+        </div>
+
+        <div class="card span-4" id="section-strategy">
+          <div class="section-title">
+            <div>
+              <h3>Risk Settings</h3>
+              <p class="subtitle">Safe-mode defaults and current control limits.</p>
+            </div>
+            <span id="activeModeBadge" class="pill">Auto AI</span>
+          </div>
+          <div class="metric-grid">
+            <div class="metric-tile">
+              <div class="metric-label">Capital</div>
+              <div id="capitalValue" class="metric-value">-</div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-label">Safe Max Capital Usage</div>
+              <div id="safeMaxCapital" class="metric-value">-</div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-label">Auto Stop Loss</div>
+              <div id="stopLossValue" class="metric-value">-</div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-label">Auto Take Profit</div>
+              <div id="takeProfitValue" class="metric-value">-</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card span-8" id="section-strategy-controls">
+          <div class="section-title">
+            <div>
+              <h3>Trading Strategy Center</h3>
+              <p class="subtitle">Tune capital usage for Auto AI, Ultra AI, and EMA strategy modes from one control center.</p>
+            </div>
+            <span class="pill">Safe spot mode</span>
+          </div>
+          <div class="strategy-shell">
+            <div id="activeModeBanner" class="active-mode-banner auto">
+              <div>
+                <span class="metric-label">Currently Active Strategy</span>
+                <strong id="activeModeBannerTitle">Auto AI</strong>
+                <div id="activeModeBannerText" class="mode-highlight">
+                  AI scanner, ranking, and prediction engine are actively driving signals.
+                </div>
+              </div>
+              <span id="activeModeStatusChip" class="status-chip auto">Auto Active</span>
+            </div>
+            <div class="mode-toggle">
+              <label id="autoModeCard" class="mode-option">
+                <input type="radio" name="tradingMode" value="auto" checked onchange="handleModeChange('auto')" />
+                <span>Auto AI Mode</span>
+              </label>
+              <label id="ultraModeCard" class="mode-option">
+                <input type="radio" name="tradingMode" value="ultra_ai" onchange="handleModeChange('ultra_ai')" />
+                <span>Ultra AI Mode</span>
+              </label>
+              <label id="emaModeCard" class="mode-option">
+                <input type="radio" name="tradingMode" value="ema_scalping" onchange="handleModeChange('ema_scalping')" />
+                <span>Professional EMA Scalping</span>
+              </label>
+            </div>
+
+            <div class="summary-strip">
+              <div class="summary-box">
+                <span class="metric-label">Active Mode</span>
+                <strong id="strategySummaryMode">-</strong>
+              </div>
+              <div class="summary-box">
+                <span class="metric-label">Auto Capital Usage</span>
+                <strong id="strategySummaryAutoCapital">-</strong>
+              </div>
+              <div class="summary-box">
+                <span class="metric-label">Ultra Capital Usage</span>
+                <strong id="strategySummaryUltraCapital">-</strong>
+              </div>
+              <div class="summary-box">
+                <span class="metric-label">Daily Limit</span>
+                <strong id="strategySummaryDailyLimit">-</strong>
+              </div>
+              <div class="summary-box">
+                <span class="metric-label">EMA Confidence Gate</span>
+                <strong id="strategySummaryEmaConfidence">-</strong>
+              </div>
+            </div>
+
+            <div class="strategy-grid">
+              <div class="strategy-panel">
+                <h4>Auto AI Controls</h4>
+                <p class="strategy-note">AI scanner, ranking, prediction, and auto logic remain unchanged. Only capital usage is adjustable.</p>
+                <div class="control-stack">
+                  <div class="field-group">
+                    <label for="autoCapitalPercent">Auto Capital Usage %</label>
+                    <input id="autoCapitalPercent" type="number" min="1" max="100" step="1" value="100" />
+                  </div>
+                  <div class="banner small">
+                    Auto AI still uses the existing scanner, ranking, prediction, and auto risk flow.
+                  </div>
+                  <div class="banner small" id="autoCapitalPreview">Estimated AI trade size will appear here.</div>
+                </div>
+              </div>
+
+              <div class="strategy-panel">
+                <h4>Ultra AI Controls</h4>
+                <p class="strategy-note">Institutional-style auto mode with full capital allocation, auto approvals, and paper/live execution selection.</p>
+                <div id="ultraControlsPanel" class="control-stack" style="display:none;">
+                  <div class="field-group">
+                    <label for="ultraCapitalPercent">Ultra Capital Usage %</label>
+                    <input id="ultraCapitalPercent" type="number" min="1" max="100" step="1" value="100" />
+                  </div>
+                  <div class="field-group">
+                    <label for="ultraCustomMaxTrades">Ultra Daily Cap</label>
+                    <input id="ultraCustomMaxTrades" type="number" min="1" max="500" step="1" value="100" />
+                  </div>
+                  <div class="field-group">
+                    <label for="ultraConfidenceThreshold">Ultra Confidence Threshold %</label>
+                    <input id="ultraConfidenceThreshold" type="number" min="60" max="99" step="1" value="75" />
+                  </div>
+                  <div class="field-group">
+                    <label for="ultraExecutionMode">Execution Mode</label>
+                    <select id="ultraExecutionMode">
+                      <option value="paper">Paper</option>
+                      <option value="live_futures">Live Futures</option>
+                    </select>
+                  </div>
+                  <div class="banner small" id="ultraCapitalPreview">Estimated Ultra AI trade size will appear here.</div>
+                </div>
+              </div>
+              <div class="strategy-panel">
+                <h4>Professional EMA Scalping</h4>
+                <p class="strategy-note">Paper-first Gold, Silver, Forex, BTC, and ETH scalping with a separate custom cap.</p>
+                <div id="emaControlsPanel" class="control-stack" style="display:none;">
+                  <div class="field-group">
+                    <label for="emaCapitalPercent">EMA Capital Usage %</label>
+                    <input id="emaCapitalPercent" type="number" min="1" max="100" step="1" value="100" />
+                  </div>
+                  <div class="field-group">
+                    <label for="emaCustomMaxTrades">EMA Strategy Daily Cap</label>
+                    <input id="emaCustomMaxTrades" type="number" min="1" max="500" step="1" value="100" />
+                  </div>
+                  <div class="field-group">
+                    <label for="emaMinRiskPct">Min Risk %</label>
+                    <input id="emaMinRiskPct" type="number" min="3" max="4" step="0.1" value="3" />
+                  </div>
+                  <div class="field-group">
+                    <label for="emaMaxRiskPct">Max Risk %</label>
+                    <input id="emaMaxRiskPct" type="number" min="3" max="4" step="0.1" value="4" />
+                  </div>
+                  <div class="field-group">
+                    <label for="emaMinRrr">Minimum RRR</label>
+                    <input id="emaMinRrr" type="number" min="2" step="0.1" value="2" />
+                  </div>
+                  <div class="field-group">
+                    <label for="emaConfidenceThreshold">Confidence Threshold %</label>
+                    <input id="emaConfidenceThreshold" type="number" min="60" max="95" step="1" value="75" />
+                  </div>
+                  <div class="banner small" id="emaStrategyPreview">Trend, EMA angle, RRR, and news filter status will appear here.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="ghost" onclick="saveManualControls()">Save Strategy Settings</button>
+            </div>
+            <div id="strategyStatus" class="banner small">Auto AI mode is active.</div>
+          </div>
+        </div>
+
+        <div class="card span-4" id="section-portfolio">
+          <h3>Portfolio Allocation</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Bucket</th>
+                <th>Target</th>
+                <th>Current</th>
+              </tr>
+            </thead>
+            <tbody id="portfolioTable"></tbody>
+          </table>
+        </div>
+
+        <div class="card span-4">
+          <h3>Backtesting</h3>
+          <div id="backtestSummary" class="muted" style="margin-top:12px;">
+            No backtest run yet.
+          </div>
+        </div>
+
+        <div class="card span-4" id="section-intel">
+          <h3>Intelligence Feed</h3>
+          <div id="intelligenceSummary" class="muted feed-prose" style="margin-top:12px;">
+            Waiting for market intelligence snapshot.
+          </div>
+        </div>
+
+        <div class="card span-4">
+          <h3>Execution Model</h3>
+          <div id="executionSummary" class="muted feed-prose" style="margin-top:12px;">
+            Fee and slippage assumptions will appear here.
+          </div>
+        </div>
+
+        <div class="card span-4">
+          <h3>Learning Guard</h3>
+          <div id="learningSummary" class="muted feed-prose" style="margin-top:12px;">
+            Learning safety state will appear here.
+          </div>
+        </div>
+
+        <div class="card span-4">
+          <h3>Market Intelligence</h3>
+          <div id="marketIntelligenceSummary" class="muted feed-prose" style="margin-top:12px;">
+            Global market intelligence will appear here.
+          </div>
+        </div>
+
+        <div class="card span-4">
+          <h3>EMA Scalping Strategy</h3>
+          <div id="emaScalpingSummary" class="muted feed-prose" style="margin-top:12px;">
+            EMA scalping trend, angle, RRR, and confidence will appear here.
+          </div>
+        </div>
+
+        <div class="card span-4">
+          <h3>Ultra AI Live Feed</h3>
+          <div id="ultraAiSummary" class="muted feed-prose" style="margin-top:12px;">
+            Ultra AI whale, smart money, order book, funding, and open interest analysis will appear here.
+          </div>
+        </div>
+
+        <div class="card span-4">
+          <h3>Top Opportunities</h3>
+          <div id="topOpportunitiesList" class="muted feed-prose" style="margin-top:12px;">
+            Waiting for ranked opportunities.
+          </div>
+        </div>
+
+        <div class="card span-4">
+          <h3>Daily Performance Log</h3>
+          <p class="subtitle">Export today or any selected date for manual review.</p>
+          <div class="field-group" style="margin-top:12px;">
+            <label for="performanceLogDate">Log Date</label>
+            <input id="performanceLogDate" type="date" />
+          </div>
+          <div class="export-actions">
+            <button class="ghost" onclick="downloadPerformanceLog('json')">Export JSON</button>
+            <button class="primary" onclick="downloadPerformanceLog('csv')">Export CSV</button>
+          </div>
+          <div id="performanceLogStatus" class="banner small">Ready to export daily performance review.</div>
+        </div>
+
+        <div class="card span-5" id="section-ops">
+          <h3>Pending Manual Approval</h3>
+          <div id="approvalList" style="margin-top:12px;"></div>
+        </div>
+
+        <div class="card span-7">
+          <h3>Real-time Market Scanner</h3>
+          <p class="subtitle small">Click a row to open the live chart for that market.</p>
+          <div class="table-scroll table-scroll--scanner">
+            <table>
+              <thead>
+                <tr>
+                  <th>Exchange</th>
+                  <th>Symbol</th>
+                  <th>Score</th>
+                  <th>Trend 15m</th>
+                  <th>Momentum 5m</th>
+                  <th>Whale</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody id="scannerTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card span-12" id="section-charts">
+          <div class="section-title">
+            <div>
+              <h3>Live Market Charts</h3>
+              <p class="subtitle">Price and volume history from the same exchange feeds used by the bot scanner.</p>
+            </div>
+            <span id="chartSourceBadge" class="pill">Waiting for chart source</span>
+          </div>
+          <div class="chart-toolbar">
+            <div class="field-group">
+              <label for="chartExchangeSelect">Exchange</label>
+              <select id="chartExchangeSelect" onchange="onChartSelectionChange()"></select>
+            </div>
+            <div class="field-group">
+              <label for="chartSymbolSelect">Symbol</label>
+              <select id="chartSymbolSelect" onchange="refreshSelectedChart()"></select>
+            </div>
+            <div class="field-group">
+              <label for="chartTimeframeSelect">Timeframe</label>
+              <select id="chartTimeframeSelect" onchange="refreshSelectedChart()">
+                <option value="1m">1m</option>
+                <option value="5m" selected>5m</option>
+                <option value="15m">15m</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="chartLimitSelect">Candles</label>
+              <select id="chartLimitSelect" onchange="refreshSelectedChart()">
+                <option value="60">60</option>
+                <option value="120" selected>120</option>
+                <option value="180">180</option>
+              </select>
+            </div>
+            <div class="field-group" style="justify-content:end;">
+              <label>&nbsp;</label>
+              <button class="ghost" onclick="refreshSelectedChart()">Refresh Chart</button>
+            </div>
+          </div>
+          <div class="chart-meta">
+            <div class="summary-box">
+              <span class="metric-label">Latest Price</span>
+              <strong id="chartLatestPrice">-</strong>
+            </div>
+            <div class="summary-box">
+              <span class="metric-label">24h Range</span>
+              <strong id="chartRangeValue">-</strong>
+            </div>
+            <div class="summary-box">
+              <span class="metric-label">Last Candle Change</span>
+              <strong id="chartChangeValue">-</strong>
+            </div>
+            <div class="summary-box">
+              <span class="metric-label">Data Source</span>
+              <strong id="chartSourceLabel">-</strong>
+            </div>
+          </div>
+          <div class="chart-panel">
+            <p id="chartStatus" class="muted small">Waiting for chart selection.</p>
+            <p class="muted small" style="margin-top:6px;">Use mouse wheel to zoom and drag to pan. Charts refresh live every 5 seconds without reloading the page.</p>
+            <div id="priceChartContainer" class="chart-container"></div>
+          </div>
+          <div class="chart-panel">
+            <div class="section-title">
+              <div>
+                <p class="muted small">Coin comparison graph</p>
+              </div>
+              <span class="pill">Normalized % performance</span>
+            </div>
+            <div id="comparisonControls" class="compare-controls"></div>
+            <div id="compareChartContainer" class="chart-container compare"></div>
+          </div>
+        </div>
+
+        <div class="card span-12" id="section-open-positions">
+          <div class="section-title">
+            <div>
+              <h3>Open positions</h3>
+              <p class="subtitle">
+                Live P&amp;L per open trade across Auto AI, Ultra AI, EMA, and manual. Exit sends an immediate market-style close
+                for that position only (overrides strategy exits until closed).
+              </p>
+            </div>
+            <span class="pill" id="openPositionsCountPill">0 open</span>
+          </div>
+          <div id="openPositionsPanel" class="muted">Loading open positions…</div>
+        </div>
+
+        <div class="card span-12" id="section-trades">
+          <div class="section-title">
+            <div>
+              <h3>Trade History</h3>
+              <p class="subtitle">Scrollable log of every position. Use View for full execution detail.</p>
+            </div>
+            <span class="pill" id="tradeHistoryCountPill">0 trades</span>
+          </div>
+          <div class="table-scroll" id="tradeHistoryScroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Exchange</th>
+                  <th>Symbol</th>
+                  <th>Status</th>
+                  <th>Purchase Price</th>
+                  <th>Executed Entry</th>
+                  <th>Total Capital Used</th>
+                  <th>Risk Amount</th>
+                  <th>Quantity</th>
+                  <th>Executed For</th>
+                  <th>Exit</th>
+                  <th>P&amp;L</th>
+                  <th>Reason</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="historyTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tradeDetailModal" class="modal-root" role="dialog" aria-modal="true" aria-labelledby="tradeDetailTitle" hidden>
+      <div class="modal-backdrop" onclick="closeTradeDetail()" aria-hidden="true"></div>
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h2 id="tradeDetailTitle">Trade</h2>
+          <button type="button" class="modal-close" onclick="closeTradeDetail()" aria-label="Close">&times;</button>
+        </div>
+        <div id="tradeDetailBody" class="modal-body"></div>
+      </div>
+    </div>
+
+    <div
+      id="manualExitModal"
+      class="modal-root"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="manualExitTitle"
+      hidden
+    >
+      <div class="modal-backdrop" onclick="closeManualExitModal()" aria-hidden="true"></div>
+      <div class="modal-panel modal-panel--confirm">
+        <div class="modal-head">
+          <h2 id="manualExitTitle">Exit position</h2>
+          <button type="button" class="modal-close" onclick="closeManualExitModal()" aria-label="Close">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="subtitle" style="margin-bottom: 12px">
+            You are about to close <strong>this position only</strong> at the latest executable price. Other open
+            trades are unchanged.
+          </p>
+          <div id="manualExitSummary" class="confirm-summary"></div>
+          <p class="muted small">This uses the same path as a manual dashboard exit in the bot engine (market-style close).</p>
+          <div class="modal-actions">
+            <button type="button" class="ghost btn-wide" onclick="closeManualExitModal()">Cancel</button>
+            <button type="button" class="danger btn-wide" id="manualExitConfirmBtn" onclick="submitManualExit()">
+              Exit at market
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="startAllModesModal"
+      class="modal-root"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="startAllModesTitle"
+      hidden
+    >
+      <div class="modal-backdrop" onclick="closeStartAllModesModal()" aria-hidden="true"></div>
+      <div class="modal-panel modal-panel--launch">
+        <div class="modal-head">
+          <h2 id="startAllModesTitle">Enable all strategies</h2>
+          <button type="button" class="modal-close" onclick="closeStartAllModesModal()" aria-label="Close">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="subtitle" style="margin-bottom: 14px">
+            Turn on every trading mode together. The bot will run <strong>Auto AI</strong>, <strong>Ultra AI</strong>,
+            and <strong>EMA scalping</strong> in parallel (per your engine rules).
+          </p>
+          <ul class="mode-launch-list">
+            <li>Auto AI — smart-money aware spot scanning</li>
+            <li>Ultra AI — multi-signal aggressive mode</li>
+            <li>Professional EMA scalping — structured EMA playbook</li>
+          </ul>
+          <div class="modal-actions">
+            <button type="button" class="ghost btn-wide" onclick="closeStartAllModesModal()">Not now</button>
+            <button type="button" class="primary btn-wide" onclick="confirmStartAllModes()">Start all three</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script>
+      let socket = null;
+      let isAuthenticated = false;
+      let lastStream = { scanner: [], rankings: [] };
+      const MANUAL_STORAGE_KEY = "crypto-bot-manual-controls";
+      const CHART_STORAGE_KEY = "crypto-bot-chart-selection";
+      let latestStateSnapshot = null;
+      let pendingManualExitTradeId = null;
+      let chartRefreshTimer = null;
+      let priceChart = null;
+      let compareChart = null;
+      let chartResizeObserver = null;
+      const MODE_CONFIG = [
+        { key: "auto", label: "Mode 1", title: "Auto AI", checkboxId: "selectModeAuto", stateId: "modeAutoState" },
+        { key: "ultra_ai", label: "Mode 2", title: "Ultra AI", checkboxId: "selectModeUltra", stateId: "modeUltraState" },
+        { key: "ema_scalping", label: "Mode 3", title: "Professional EMA Scalping", checkboxId: "selectModeEma", stateId: "modeEmaState" }
+      ];
+      const FALLBACK_CHART_MARKETS = [
+        { exchange: "Binance", symbol: "BTC/USDT" },
+        { exchange: "Binance", symbol: "ETH/USDT" },
+        { exchange: "Binance", symbol: "SOL/USDT" },
+        { exchange: "CoinDCX", symbol: "BTC/USDT" },
+        { exchange: "CoinDCX", symbol: "ETH/USDT" },
+        { exchange: "MacroPaper", symbol: "XAUUSD" },
+        { exchange: "MacroPaper", symbol: "XAGUSD" },
+        { exchange: "MacroPaper", symbol: "EURUSD" },
+        { exchange: "MacroPaper", symbol: "GBPUSD" },
+        { exchange: "MacroPaper", symbol: "BTCUSD" }
+      ];
+
+      async function apiFetch(url, options = {}) {
+        const response = await fetch(url, { credentials: "include", ...options });
+        const raw = await response.text();
+        let data;
+
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch (error) {
+          const hint = raw ? raw.slice(0, 120).replace(/\s+/g, " ") : "(empty body)";
+          throw new Error(
+            `API returned non-JSON for ${url} (HTTP ${response.status}). ${hint}${
+              response.status === 502 || response.status === 504
+                ? " If you use a reverse proxy, increase its read timeout or restart the Node server."
+                : " Restart the dashboard server so it matches this dashboard build."
+            }`
+          );
+        }
+
+        if (response.status === 401) {
+          showAuthOverlay(true);
+          throw new Error(data.error || "Authentication required.");
+        }
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        return data;
+      }
+
+      function showAuthOverlay(visible, message = "") {
+        document.getElementById("authOverlay").style.display = visible ? "flex" : "none";
+        document.getElementById("loginMessage").textContent = message;
+      }
+
+      async function checkAuth() {
+        const data = await apiFetch("/api/auth/status");
+        isAuthenticated = Boolean(data.authenticated);
+        document.getElementById("authStatus").textContent = isAuthenticated ? "Authenticated" : "Login required";
+        showAuthOverlay(!isAuthenticated, data.auth.requiresPasswordChange ? "Default password is active. Change it in .env." : "");
+        return data;
+      }
+
+      async function login() {
+        try {
+          const username = document.getElementById("loginUsername").value;
+          const password = document.getElementById("loginPassword").value;
+          await apiFetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+          });
+          isAuthenticated = true;
+          document.getElementById("authStatus").textContent = "Authenticated";
+          showAuthOverlay(false);
+          await fetchState();
+          connectSocket();
+        } catch (error) {
+          showAuthOverlay(true, error.message);
+        }
+      }
+
+      async function logout() {
+        await apiFetch("/api/auth/logout", { method: "POST" });
+        isAuthenticated = false;
+        if (socket) {
+          socket.close();
+        }
+        document.getElementById("authStatus").textContent = "Logged out";
+        showAuthOverlay(true, "Signed out of dashboard.");
+      }
+
+      function connectSocket() {
+        if (socket) {
+          socket.close();
+        }
+
+        socket = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
+
+        socket.addEventListener("open", () => {
+          document.getElementById("socketStatus").textContent = "WebSocket live";
+        });
+
+        socket.addEventListener("close", () => {
+          document.getElementById("socketStatus").textContent = "WebSocket offline";
+        });
+
+        socket.addEventListener("message", (event) => {
+          const payload = JSON.parse(event.data);
+          if (payload.type === "state") {
+            lastStream = payload;
+          }
+        });
+      }
+
+      async function fetchState() {
+        if (!isAuthenticated) {
+          return;
+        }
+
+        const data = await apiFetch("/api/status");
+        render(data);
+      }
+
+      async function postAction(url, body = {}) {
+        try {
+          const data = await apiFetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          });
+          render(data);
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+      function getSelectedModeControls() {
+        return MODE_CONFIG.filter((mode) => document.getElementById(mode.checkboxId)?.checked).map((mode) => mode.key);
+      }
+
+      async function startAllModes() {
+        await postAction("/api/modes/start-all");
+      }
+
+      async function stopAllModes() {
+        await postAction("/api/modes/stop-all");
+      }
+
+      async function startSelectedModes() {
+        const modes = getSelectedModeControls();
+        if (!modes.length) {
+          alert("Select at least one mode first.");
+          return;
+        }
+        await postAction("/api/modes/start-selected", { modes });
+      }
+
+      async function startModeControl(mode) {
+        await postAction(`/api/modes/${mode}/start`);
+      }
+
+      async function stopModeControl(mode) {
+        await postAction(`/api/modes/${mode}/stop`);
+      }
+
+      async function downloadPerformanceLog(format) {
+        try {
+          const date = document.getElementById("performanceLogDate").value;
+          const params = new URLSearchParams({
+            date: date || new Date().toISOString().slice(0, 10),
+            format
+          });
+          const response = await fetch(`/api/performance-log?${params.toString()}`, {
+            credentials: "include"
+          });
+          if (response.status === 401) {
+            showAuthOverlay(true);
+            throw new Error("Authentication required.");
+          }
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || "Failed to export performance log.");
+          }
+
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `performance-log-${params.get("date")}.${format}`;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+          document.getElementById("performanceLogStatus").textContent =
+            `Exported ${format.toUpperCase()} log for ${params.get("date")}.`;
+        } catch (error) {
+          document.getElementById("performanceLogStatus").textContent = error.message;
+        }
+      }
+
+      async function runBacktest() {
+        try {
+          const data = await apiFetch("/api/backtest", { method: "POST" });
+          document.getElementById("backtestSummary").innerHTML = `
+            <p><strong>Trades Tested:</strong> ${data.tradesTested}</p>
+            <p><strong>Win Rate:</strong> ${data.winRate}%</p>
+            <p><strong>Accuracy:</strong> ${data.accuracy}%</p>
+            <p><strong>Total Return:</strong> ${data.totalPnlPct}%</p>
+          `;
+          fetchState();
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+      async function approve(id) {
+        await postAction(`/api/approve/${id}`, { notes: "Approved from dashboard" });
+        fetchState();
+      }
+
+      async function reject(id) {
+        await postAction(`/api/reject/${id}`, { reason: "Rejected from dashboard" });
+        fetchState();
+      }
+
+      function formatCurrency(value) {
+        return new Intl.NumberFormat("en-IN", {
+          style: "currency",
+          currency: "INR",
+          maximumFractionDigits: 2
+        }).format(Number(value || 0));
+      }
+
+      function pct(value) {
+        return `${(Number(value || 0) * 100).toFixed(2)}%`;
+      }
+
+      function displayPercent(value) {
+        return `${Number(value || 0).toFixed(1)}%`;
+      }
+
+      function formatNumber(value, digits = 4) {
+        return Number(value || 0).toFixed(digits);
+      }
+
+      function formatCompact(value) {
+        return new Intl.NumberFormat("en-IN", {
+          notation: "compact",
+          maximumFractionDigits: 2
+        }).format(Number(value || 0));
+      }
+
+      function escapeHtml(str) {
+        if (str === undefined || str === null) {
+          return "";
+        }
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function renderOpenPositions(state) {
+        const panel = document.getElementById("openPositionsPanel");
+        const pill = document.getElementById("openPositionsCountPill");
+        if (!panel) {
+          return;
+        }
+        const open = (state.trades || []).filter((t) => t.status === "open");
+        if (pill) {
+          pill.textContent = `${open.length} open`;
+        }
+        if (!open.length) {
+          panel.innerHTML =
+            '<p class="muted">No open positions. New trades appear here with live P&amp;L and per-trade exit.</p>';
+          return;
+        }
+        panel.innerHTML = `<div class="open-pos-grid">${open
+          .map((t) => {
+            const mode = t.strategyMode || "auto";
+            const px = Number(t.livePrice || t.entryPrice || 0);
+            const entry = Number(t.entryPrice || 0);
+            const pnlPct = t.notional
+              ? Number(((Number(t.livePnl || 0) / Number(t.notional)) * 100).toFixed(2))
+              : Number(t.livePnlPct || 0);
+            const cls = pnlPct >= 0 ? "good" : "bad";
+            const sym = escapeHtml(`${t.exchange} ${t.symbol}`);
+            const tid = String(t.id || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+            return `<div class="open-pos-card">
+          <h4>${sym}</h4>
+          <div class="open-pos-meta">
+            <div><strong>Mode:</strong> ${escapeHtml(mode)}</div>
+            <div><strong>Entry:</strong> ${formatNumber(entry)}</div>
+            <div><strong>Current:</strong> ${formatNumber(px)}</div>
+            <div><strong>P&amp;L:</strong> <span class="${cls}">${formatCurrency(t.livePnl || 0)} (${pnlPct >= 0 ? "+" : ""}${pnlPct}%)</span></div>
+          </div>
+          <button type="button" class="danger btn-sm" onclick="openManualExitConfirm('${tid}')">Exit trade</button>
+        </div>`;
+          })
+          .join("")}</div>`;
+      }
+
+      function closeManualExitModal() {
+        const modal = document.getElementById("manualExitModal");
+        if (modal) {
+          modal.setAttribute("hidden", "");
+        }
+        pendingManualExitTradeId = null;
+        const btn = document.getElementById("manualExitConfirmBtn");
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Exit at market";
+        }
+        const tradeModal = document.getElementById("tradeDetailModal");
+        if (!tradeModal || tradeModal.hasAttribute("hidden")) {
+          document.body.style.overflow = "";
+        }
+      }
+
+      function openManualExitConfirm(tradeId) {
+        if (!tradeId) {
+          return;
+        }
+        pendingManualExitTradeId = String(tradeId);
+        const trade = latestStateSnapshot?.trades?.find((t) => String(t.id) === String(tradeId));
+        const summary = document.getElementById("manualExitSummary");
+        if (summary) {
+          if (trade) {
+            const entry = Number(trade.entryPrice || 0);
+            const px = Number(trade.livePrice || trade.entryPrice || 0);
+            const pnlPct = trade.notional
+              ? Number(((Number(trade.livePnl || 0) / Number(trade.notional)) * 100).toFixed(2))
+              : Number(trade.livePnlPct || 0);
+            const cls = pnlPct >= 0 ? "good" : "bad";
+            summary.innerHTML = `
+              <dl>
+                <dt>Market</dt><dd>${escapeHtml(`${trade.exchange} ${trade.symbol}`)}</dd>
+                <dt>Mode</dt><dd>${escapeHtml(String(trade.strategyMode || "—"))}</dd>
+                <dt>Side</dt><dd>${escapeHtml(String(trade.side || "buy").toUpperCase())}</dd>
+                <dt>Entry</dt><dd>${formatNumber(entry)}</dd>
+                <dt>Current</dt><dd>${formatNumber(px)}</dd>
+                <dt>P&amp;L (live)</dt><dd><span class="${cls}">${formatCurrency(trade.livePnl || 0)} (${pnlPct >= 0 ? "+" : ""}${pnlPct}%)</span></dd>
+              </dl>`;
+          } else {
+            summary.innerHTML = `<p class="muted" style="margin:0">Trade <code style="color:var(--accent)">${escapeHtml(
+              String(tradeId)
+            )}</code> — refresh if details are missing.</p>`;
+          }
+        }
+        document.getElementById("manualExitModal")?.removeAttribute("hidden");
+        document.body.style.overflow = "hidden";
+      }
+
+      async function postManualExit(tradeId) {
+        const jsonBody = JSON.stringify({ tradeId });
+        const attempts = [
+          { path: "/api/close-position", body: jsonBody },
+          { path: "/api/manual-exit", body: jsonBody },
+          {
+            path: `/api/trades/${encodeURIComponent(tradeId)}/manual-exit`,
+            body: "{}"
+          }
+        ];
+        let lastMessage = "";
+        for (const { path, body } of attempts) {
+          try {
+            return await apiFetch(path, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body
+            });
+          } catch (error) {
+            lastMessage = error.message || "";
+            if (lastMessage.includes("Cannot POST") || lastMessage.includes("Cannot GET")) {
+              continue;
+            }
+            throw error;
+          }
+        }
+        throw new Error(
+          lastMessage ||
+            "Exit API not found. Stop every old Node process and start only: node dashboard/server.js (or npm run dashboard), then hard-refresh the browser."
+        );
+      }
+
+      async function submitManualExit() {
+        const id = pendingManualExitTradeId;
+        if (!id) {
+          return;
+        }
+        const btn = document.getElementById("manualExitConfirmBtn");
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "Exiting…";
+        }
+        try {
+          const data = await postManualExit(id);
+          closeManualExitModal();
+          closeTradeDetail();
+          render(data);
+        } catch (error) {
+          alert(error.message);
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = "Exit at market";
+          }
+        }
+      }
+
+      function closeStartAllModesModal() {
+        document.getElementById("startAllModesModal")?.setAttribute("hidden", "");
+        const tradeModal = document.getElementById("tradeDetailModal");
+        if (!tradeModal || tradeModal.hasAttribute("hidden")) {
+          document.body.style.overflow = "";
+        }
+      }
+
+      function openStartAllModesModal() {
+        document.getElementById("startAllModesModal")?.removeAttribute("hidden");
+        document.body.style.overflow = "hidden";
+      }
+
+      async function confirmStartAllModes() {
+        MODE_CONFIG.forEach((mode) => {
+          const el = document.getElementById(mode.checkboxId);
+          if (el) {
+            el.checked = true;
+          }
+        });
+        closeStartAllModesModal();
+        await postAction("/api/modes/start-all");
+      }
+
+      function closeTradeDetail() {
+        const modal = document.getElementById("tradeDetailModal");
+        if (modal) {
+          modal.setAttribute("hidden", "");
+        }
+        document.body.style.overflow = "";
+      }
+
+      function openTradeDetail(tradeId) {
+        const state = latestStateSnapshot;
+        const trade = (state?.trades || []).find((t) => String(t.id) === String(tradeId));
+        if (!trade) {
+          return;
+        }
+        const riskAmount =
+          Number(trade.strategySettings?.targetRiskAmount || 0) > 0
+            ? Number(trade.strategySettings.targetRiskAmount)
+            : Number(
+                (
+                  Math.abs(
+                    (Number(trade.entryPrice || 0) - Number(trade.stopLoss || 0)) * Number(trade.amount || 0)
+                  )
+                ).toFixed(2)
+              );
+        const capitalUsed =
+          Number(trade.strategySettings?.capitalUsed || 0) > 0
+            ? Number(trade.strategySettings.capitalUsed)
+            : Number(trade.notional || 0);
+        document.getElementById("tradeDetailTitle").textContent = `${trade.exchange} ${trade.symbol}`;
+
+        const pnlNum = Number(trade.status === "open" ? trade.livePnl || 0 : trade.pnl || 0);
+        const pnlClass = pnlNum >= 0 ? "good" : "bad";
+        const pnlDisplay =
+          trade.status === "open"
+            ? `${formatCurrency(trade.livePnl || 0)} (live) @ ${escapeHtml(String(trade.livePrice ?? ""))}`
+            : formatCurrency(trade.pnl || 0);
+
+        const safeJson = (obj) =>
+          `<pre class="detail-pre">${escapeHtml(JSON.stringify(obj ?? {}, null, 2))}</pre>`;
+
+        document.getElementById("tradeDetailBody").innerHTML = `
+          <dl class="detail-dl">
+            <dt>Trade ID</dt><dd>${escapeHtml(trade.id)}</dd>
+            <dt>Status</dt><dd>${escapeHtml(trade.status)}</dd>
+            <dt>Strategy</dt><dd>${escapeHtml(trade.strategyMode || "—")}</dd>
+            <dt>Side</dt><dd>${escapeHtml(String(trade.side || "buy").toUpperCase())}</dd>
+            <dt>Opened</dt><dd>${escapeHtml(trade.openedAt || "—")}</dd>
+            <dt>Closed</dt><dd>${escapeHtml(trade.closedAt || "—")}</dd>
+            <dt>Entry (req / exec)</dt><dd>${escapeHtml(trade.requestedEntryPrice ?? trade.entryPrice)} / ${escapeHtml(trade.entryPrice)}</dd>
+            <dt>Exit</dt><dd>${escapeHtml(
+              trade.exitPrice ?? (trade.status === "open" ? trade.livePrice ?? "—" : "—")
+            )}</dd>
+            <dt>Quantity</dt><dd>${escapeHtml(Number(trade.amount || 0).toFixed(6))}</dd>
+            <dt>Notional</dt><dd>${formatCurrency(trade.notional)}</dd>
+            <dt>Capital used</dt><dd>${formatCurrency(capitalUsed)}</dd>
+            <dt>Risk amount</dt><dd>${formatCurrency(riskAmount)}</dd>
+            <dt>P&amp;L</dt><dd><span class="${pnlClass}">${pnlDisplay}</span></dd>
+            <dt>Exit reason</dt><dd>${escapeHtml(trade.exitReason || (trade.status === "open" ? "open" : "—"))}</dd>
+            <dt>Paper</dt><dd>${trade.paper ? "Yes" : "No"}</dd>
+          </dl>
+          <p class="muted small" style="margin-bottom:8px;">Exit plan</p>
+          ${safeJson(trade.exitPlan)}
+          <p class="muted small" style="margin:16px 0 8px;">Strategy settings</p>
+          ${safeJson(trade.strategySettings)}
+          <p class="muted small" style="margin:16px 0 8px;">Prediction</p>
+          ${safeJson(trade.prediction)}
+          <p class="muted small" style="margin:16px 0 8px;">Estimated execution</p>
+          ${safeJson(trade.estimatedExecution)}
+          ${
+            trade.status === "open"
+              ? `<div class="trade-detail-exit-cta">
+            <p class="muted small" style="margin-bottom:10px;">Close only this position from the dashboard.</p>
+            <button type="button" class="danger" onclick="openManualExitConfirm(${JSON.stringify(String(trade.id))})">
+              Exit this trade…
+            </button>
+          </div>`
+              : ""
+          }
+        `;
+        document.getElementById("tradeDetailModal").removeAttribute("hidden");
+        document.body.style.overflow = "hidden";
+      }
+
+      function saveChartSelection(selection) {
+        localStorage.setItem(CHART_STORAGE_KEY, JSON.stringify(selection));
+      }
+
+      function loadChartSelection() {
+        try {
+          return JSON.parse(localStorage.getItem(CHART_STORAGE_KEY) || "null");
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function getAvailableChartMarkets(state) {
+        const seen = new Set();
+        const sources = [
+          ...(state?.runtime?.lastRankings || []).map((item) => ({
+            exchange: item.exchange,
+            symbol: item.symbol
+          })),
+          ...(state?.runtime?.lastScanResults || [])
+            .filter((item) => !item.error)
+            .map((item) => ({
+              exchange: item.exchange,
+              symbol: item.symbol
+            })),
+          ...(lastStream.scanner || []).map((item) => ({
+            exchange: item.exchange,
+            symbol: item.symbol
+          })),
+          ...((state?.runtime?.lastEmaScalping?.opportunities || []).map((item) => ({
+            exchange: "MacroPaper",
+            symbol: item.symbol
+          })))
+        ];
+
+        const normalizedSources = sources.length ? sources : FALLBACK_CHART_MARKETS;
+
+        return normalizedSources.filter((item) => {
+          const key = `${item.exchange}:${item.symbol}`;
+          if (seen.has(key)) {
+            return false;
+          }
+          seen.add(key);
+          return true;
+        });
+      }
+
+      function ensureSelectValue(select, desiredValue) {
+        const exists = Array.from(select.options).some((option) => option.value === desiredValue);
+        if (exists) {
+          select.value = desiredValue;
+        } else if (select.options.length) {
+          select.selectedIndex = 0;
+        }
+      }
+
+      function syncChartSelectors(state) {
+        const availableMarkets = getAvailableChartMarkets(state);
+        const exchangeSelect = document.getElementById("chartExchangeSelect");
+        const symbolSelect = document.getElementById("chartSymbolSelect");
+        const saved = loadChartSelection();
+        const currentExchange = exchangeSelect.value || saved?.exchange;
+        const currentSymbol = symbolSelect.value || saved?.symbol;
+
+        const exchanges = [...new Set(availableMarkets.map((item) => item.exchange))];
+        exchangeSelect.innerHTML = exchanges
+          .map((exchange) => `<option value="${exchange}">${exchange}</option>`)
+          .join("");
+        ensureSelectValue(exchangeSelect, currentExchange || availableMarkets[0]?.exchange || "Binance");
+
+        const selectedExchange = exchangeSelect.value;
+        const symbols = availableMarkets
+          .filter((item) => item.exchange === selectedExchange)
+          .map((item) => item.symbol);
+        symbolSelect.innerHTML = symbols
+          .map((symbol) => `<option value="${symbol}">${symbol}</option>`)
+          .join("");
+        ensureSelectValue(symbolSelect, currentSymbol || symbols[0] || "BTC/USDT");
+
+        const timeframeSelect = document.getElementById("chartTimeframeSelect");
+        const limitSelect = document.getElementById("chartLimitSelect");
+        ensureSelectValue(timeframeSelect, saved?.timeframe || timeframeSelect.value || "5m");
+        ensureSelectValue(limitSelect, String(saved?.limit || limitSelect.value || "120"));
+
+        saveChartSelection({
+          exchange: exchangeSelect.value,
+          symbol: symbolSelect.value,
+          timeframe: timeframeSelect.value,
+          limit: Number(limitSelect.value),
+          compareSymbols: (saved?.compareSymbols || []).filter(Boolean)
+        });
+
+        renderComparisonChoices(state);
+      }
+
+      function onChartSelectionChange() {
+        syncChartSelectors(latestStateSnapshot || {});
+        refreshSelectedChart();
+      }
+
+      function openCoinChart(exchange, symbol) {
+        const exchangeSelect = document.getElementById("chartExchangeSelect");
+        const symbolSelect = document.getElementById("chartSymbolSelect");
+        const timeframeSelect = document.getElementById("chartTimeframeSelect");
+        const limitSelect = document.getElementById("chartLimitSelect");
+        const saved = loadChartSelection() || {};
+
+        exchangeSelect.value = exchange;
+        syncChartSelectors(latestStateSnapshot || {});
+        exchangeSelect.value = exchange;
+        syncChartSelectors(latestStateSnapshot || {});
+        symbolSelect.value = symbol;
+
+        saveChartSelection({
+          exchange,
+          symbol,
+          timeframe: saved.timeframe || timeframeSelect.value || "5m",
+          limit: Number(saved.limit || limitSelect.value || 120),
+          compareSymbols: saved.compareSymbols || []
+        });
+
+        refreshSelectedChart().catch(() => {});
+        document.getElementById("priceChartContainer").scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }
+
+      function getChartThemeOptions() {
+        return {
+          backgroundColor: "transparent",
+          textStyle: {
+            color: "#9ab0cf"
+          },
+          animation: false
+        };
+      }
+
+      function ensureChartsInitialized() {
+        if (!window.echarts) {
+          throw new Error("Chart library failed to load.");
+        }
+
+        if (!priceChart) {
+          const priceContainer = document.getElementById("priceChartContainer");
+          const compareContainer = document.getElementById("compareChartContainer");
+          priceChart = echarts.init(priceContainer, null, { renderer: "canvas" });
+          compareChart = echarts.init(compareContainer, null, { renderer: "canvas" });
+
+          if (!chartResizeObserver) {
+            chartResizeObserver = new ResizeObserver(() => {
+              if (priceChart) {
+                priceChart.resize();
+              }
+              if (compareChart) {
+                compareChart.resize();
+              }
+            });
+            chartResizeObserver.observe(priceContainer);
+            chartResizeObserver.observe(compareContainer);
+          }
+        }
+      }
+
+      function renderComparisonChoices(state) {
+        const selectedExchange = document.getElementById("chartExchangeSelect").value;
+        const selectedSymbol = document.getElementById("chartSymbolSelect").value;
+        const availableSymbols = getAvailableChartMarkets(state)
+          .filter((item) => item.exchange === selectedExchange)
+          .map((item) => item.symbol)
+          .slice(0, 6);
+        const saved = loadChartSelection() || {};
+        const selectedSet = new Set([selectedSymbol, ...(saved.compareSymbols || [])]);
+
+        document.getElementById("comparisonControls").innerHTML = availableSymbols
+          .map(
+            (symbol) => `
+              <button
+                class="compare-chip ${selectedSet.has(symbol) ? "active" : ""}"
+                onclick="toggleCompareSymbol('${symbol}')"
+                type="button"
+              >
+                ${symbol}
+              </button>
+            `
+          )
+          .join("");
+      }
+
+      function toggleCompareSymbol(symbol) {
+        const selectedSymbol = document.getElementById("chartSymbolSelect").value;
+        const saved = loadChartSelection() || {};
+        const selected = new Set(saved.compareSymbols || []);
+
+        if (symbol === selectedSymbol) {
+          selected.add(symbol);
+        } else if (selected.has(symbol)) {
+          selected.delete(symbol);
+        } else {
+          selected.add(symbol);
+        }
+
+        saveChartSelection({
+          exchange: document.getElementById("chartExchangeSelect").value,
+          symbol: selectedSymbol,
+          timeframe: document.getElementById("chartTimeframeSelect").value,
+          limit: Number(document.getElementById("chartLimitSelect").value),
+          compareSymbols: [...selected].slice(0, 4)
+        });
+        renderComparisonChoices(latestStateSnapshot || {});
+        refreshSelectedChart();
+      }
+
+      function formatChartTimeLabel(timestamp) {
+        return new Date(timestamp).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+      }
+
+      function setEmptyCharts() {
+        ensureChartsInitialized();
+        priceChart.clear();
+        compareChart.clear();
+      }
+
+      async function refreshSelectedChart() {
+        if (!isAuthenticated) {
+          return;
+        }
+
+        const exchange = document.getElementById("chartExchangeSelect").value;
+        const symbol = document.getElementById("chartSymbolSelect").value;
+        const timeframe = document.getElementById("chartTimeframeSelect").value;
+        const limit = document.getElementById("chartLimitSelect").value;
+
+        if (!exchange || !symbol) {
+          document.getElementById("chartStatus").textContent =
+            "No live markets loaded yet. Select a fallback market or start the bot scan.";
+          setEmptyCharts();
+          return;
+        }
+
+        const savedSelection = loadChartSelection() || {};
+        saveChartSelection({
+          exchange,
+          symbol,
+          timeframe,
+          limit: Number(limit),
+          compareSymbols: savedSelection.compareSymbols || []
+        });
+        document.getElementById("chartStatus").textContent = `Loading ${exchange} ${symbol} ${timeframe} chart...`;
+
+        try {
+          ensureChartsInitialized();
+          const params = new URLSearchParams({
+            exchange,
+            symbol,
+            timeframe,
+            limit
+          });
+          const chart = await apiFetch(`/api/chart?${params.toString()}`);
+          const candles = chart.candles || [];
+          if (!candles.length) {
+            throw new Error(`No candle data returned for ${exchange} ${symbol} ${timeframe}.`);
+          }
+          const categoryData = candles.map((item) => formatChartTimeLabel(item.timestamp));
+          const candleData = candles.map((item) => [item.open, item.close, item.low, item.high]);
+          const volumeData = candles.map((item) => item.volume);
+          const volumeColors = candles.map((item) =>
+            item.close >= item.open ? "rgba(33, 192, 122, 0.72)" : "rgba(255, 108, 129, 0.72)"
+          );
+
+          priceChart.setOption({
+            backgroundColor: "transparent",
+            animation: false,
+            tooltip: {
+              trigger: "axis",
+              axisPointer: {
+                type: "cross"
+              }
+            },
+            toolbox: {
+              feature: {
+                dataZoom: {
+                  yAxisIndex: "none"
+                },
+                restore: {}
+              },
+              iconStyle: {
+                borderColor: "#9ab0cf"
+              }
+            },
+            axisPointer: {
+              link: [{ xAxisIndex: "all" }]
+            },
+            grid: [
+              { left: 50, right: 20, top: 20, height: 170 },
+              { left: 50, right: 20, top: 215, height: 50 }
+            ],
+            xAxis: [
+              {
+                type: "category",
+                data: categoryData,
+                boundaryGap: true,
+                axisLine: { lineStyle: { color: "rgba(120, 158, 214, 0.18)" } },
+                axisLabel: { color: "#9ab0cf" }
+              },
+              {
+                type: "category",
+                gridIndex: 1,
+                data: categoryData,
+                boundaryGap: true,
+                axisLine: { lineStyle: { color: "rgba(120, 158, 214, 0.18)" } },
+                axisLabel: { show: false }
+              }
+            ],
+            yAxis: [
+              {
+                scale: true,
+                splitLine: { lineStyle: { color: "rgba(120, 158, 214, 0.08)" } },
+                axisLabel: { color: "#9ab0cf" }
+              },
+              {
+                gridIndex: 1,
+                scale: true,
+                splitNumber: 2,
+                splitLine: { show: false },
+                axisLabel: {
+                  color: "#9ab0cf",
+                  formatter: (value) => formatCompact(value)
+                }
+              }
+            ],
+            dataZoom: [
+              {
+                type: "inside",
+                xAxisIndex: [0, 1],
+                zoomOnMouseWheel: true,
+                moveOnMouseMove: true,
+                moveOnMouseWheel: true
+              },
+              {
+                show: true,
+                type: "slider",
+                xAxisIndex: [0, 1],
+                bottom: 0,
+                height: 18,
+                borderColor: "rgba(120, 158, 214, 0.18)",
+                fillerColor: "rgba(93, 208, 255, 0.14)",
+                backgroundColor: "rgba(8, 16, 28, 0.75)"
+              }
+            ],
+            series: [
+              {
+                name: `${chart.symbol} Candle`,
+                type: "candlestick",
+                data: candleData,
+                itemStyle: {
+                  color: "#21c07a",
+                  color0: "#ff6c81",
+                  borderColor: "#21c07a",
+                  borderColor0: "#ff6c81"
+                }
+              },
+              {
+                name: "Volume",
+                type: "bar",
+                xAxisIndex: 1,
+                yAxisIndex: 1,
+                data: volumeData.map((value, index) => ({
+                  value,
+                  itemStyle: {
+                    color: volumeColors[index]
+                  }
+                }))
+              }
+            ]
+          }, true);
+
+          const latestCandle = candles.at(-1);
+          const previousCandle = candles.at(-2);
+          const changePct =
+            latestCandle && previousCandle && previousCandle.close
+              ? (((latestCandle.close - previousCandle.close) / previousCandle.close) * 100).toFixed(2)
+              : "0.00";
+
+          document.getElementById("chartLatestPrice").textContent = formatNumber(
+            chart.latestPrice || latestCandle?.close || 0,
+            4
+          );
+          document.getElementById("chartRangeValue").textContent =
+            latestCandle ? `${formatNumber(latestCandle.low, 4)} - ${formatNumber(latestCandle.high, 4)}` : "-";
+          document.getElementById("chartChangeValue").textContent = `${changePct}%`;
+          document.getElementById("chartSourceLabel").textContent = chart.source;
+          document.getElementById("chartSourceBadge").textContent = `${chart.exchange} ${chart.timeframe} live`;
+
+          const saved = loadChartSelection() || {};
+          const comparisonSymbols = [
+            symbol,
+            ...((saved.compareSymbols || []).filter((item) => item && item !== symbol))
+          ].slice(0, 4);
+          const comparisonPalette = ["#5dd0ff", "#21c07a", "#ffbf5f", "#ff6c81"];
+          const comparisonResults = await Promise.allSettled(
+            comparisonSymbols.map((compareSymbol) =>
+              apiFetch(
+                `/api/chart?${new URLSearchParams({
+                  exchange,
+                  symbol: compareSymbol,
+                  timeframe,
+                  limit
+                }).toString()}`
+              ).then((response) => ({
+                symbol: compareSymbol,
+                candles: response.candles || []
+              }))
+            )
+          );
+          const comparisonCharts = comparisonResults
+            .filter((result) => result.status === "fulfilled")
+            .map((result) => result.value);
+
+          compareChart.setOption({
+            backgroundColor: "transparent",
+            animation: false,
+            tooltip: {
+              trigger: "axis"
+            },
+            legend: {
+              top: 0,
+              textStyle: {
+                color: "#9ab0cf"
+              }
+            },
+            toolbox: {
+              feature: {
+                dataZoom: {
+                  yAxisIndex: "none"
+                },
+                restore: {}
+              },
+              iconStyle: {
+                borderColor: "#9ab0cf"
+              }
+            },
+            xAxis: {
+              type: "category",
+              data: categoryData,
+              boundaryGap: false,
+              axisLine: { lineStyle: { color: "rgba(120, 158, 214, 0.18)" } },
+              axisLabel: { color: "#9ab0cf" }
+            },
+            yAxis: {
+              type: "value",
+              axisLabel: {
+                color: "#9ab0cf",
+                formatter: "{value}%"
+              },
+              splitLine: { lineStyle: { color: "rgba(120, 158, 214, 0.08)" } }
+            },
+            dataZoom: [
+              {
+                type: "inside",
+                zoomOnMouseWheel: true,
+                moveOnMouseMove: true,
+                moveOnMouseWheel: true
+              },
+              {
+                show: true,
+                type: "slider",
+                bottom: 0,
+                height: 18,
+                borderColor: "rgba(120, 158, 214, 0.18)",
+                fillerColor: "rgba(93, 208, 255, 0.14)",
+                backgroundColor: "rgba(8, 16, 28, 0.75)"
+              }
+            ],
+            series: comparisonCharts
+              .map((item, index) => {
+                const baseline = item.candles[0]?.close || 0;
+                if (!baseline) {
+                  return null;
+                }
+                return {
+                  name: item.symbol,
+                  type: "line",
+                  smooth: true,
+                  showSymbol: false,
+                  lineStyle: {
+                    width: item.symbol === symbol ? 3 : 2,
+                    color: comparisonPalette[index % comparisonPalette.length]
+                  },
+                  itemStyle: {
+                    color: comparisonPalette[index % comparisonPalette.length]
+                  },
+                  data: item.candles.map((candle) =>
+                    Number((((candle.close - baseline) / baseline) * 100).toFixed(2))
+                  )
+                };
+              })
+              .filter(Boolean)
+          }, true);
+
+          document.getElementById("chartStatus").textContent =
+            `Showing ${candles.length} candles for ${chart.exchange} ${chart.symbol} from ${chart.source}. Last update ${formatChartTimeLabel(
+              chart.fetchedAt
+            )}.`;
+        } catch (error) {
+          document.getElementById("chartStatus").textContent = error.message;
+          setEmptyCharts();
+        }
+      }
+
+      function startChartRefreshLoop() {
+        if (chartRefreshTimer) {
+          clearInterval(chartRefreshTimer);
+        }
+
+        chartRefreshTimer = setInterval(() => {
+          refreshSelectedChart().catch(() => {});
+        }, 5000);
+      }
+
+      function readManualForm() {
+        const selectedMode =
+          document.querySelector('input[name="tradingMode"]:checked')?.value || "auto";
+        return {
+          strategyMode: selectedMode,
+          manualMode: false,
+          autoSettings: {
+            capitalPercent: Number(document.getElementById("autoCapitalPercent").value || 100)
+          },
+          emaScalpingSettings: {
+            capitalPercent: Number(document.getElementById("emaCapitalPercent").value || 100),
+            customMaxTradesPerDay: Number(document.getElementById("emaCustomMaxTrades").value || 100),
+            minRiskPct: Number(document.getElementById("emaMinRiskPct").value || 3) / 100,
+            maxRiskPct: Number(document.getElementById("emaMaxRiskPct").value || 4) / 100,
+            minRrr: Number(document.getElementById("emaMinRrr").value || 2),
+            confidenceThreshold:
+              Number(document.getElementById("emaConfidenceThreshold").value || 75) / 100
+          },
+          ultraAiSettings: {
+            capitalPercent: Number(document.getElementById("ultraCapitalPercent").value || 100),
+            customMaxTradesPerDay: Number(document.getElementById("ultraCustomMaxTrades").value || 100),
+            confidenceThreshold:
+              Number(document.getElementById("ultraConfidenceThreshold").value || 75) / 100,
+            executionMode: document.getElementById("ultraExecutionMode").value || "paper"
+          }
+        };
+      }
+
+      function saveManualControlsToStorage(payload) {
+        localStorage.setItem(MANUAL_STORAGE_KEY, JSON.stringify(payload));
+      }
+
+      function loadManualControlsFromStorage() {
+        try {
+          return JSON.parse(localStorage.getItem(MANUAL_STORAGE_KEY) || "null");
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function applyManualStateToForm(state) {
+        const strategyMode = state.strategyMode || (state.manualMode ? "manual" : "auto");
+        const ultraMode = strategyMode === "ultra_ai";
+        const emaMode = strategyMode === "ema_scalping";
+        const autoSettings = state.autoSettings || {};
+        const emaScalpingSettings = state.emaScalpingSettings || {};
+        const ultraAiSettings = state.ultraAiSettings || {};
+        const selectedMode = strategyMode;
+        const selectedRadio = document.querySelector(
+          `input[name="tradingMode"][value="${selectedMode}"]`
+        );
+        if (selectedRadio) {
+          selectedRadio.checked = true;
+        }
+
+        document.getElementById("autoCapitalPercent").value = Number(
+          autoSettings.capitalPercent ?? state.config?.capital?.effectiveTradeSizePct * 100 ?? 100
+        );
+        document.getElementById("ultraCapitalPercent").value = Number(
+          ultraAiSettings.capitalPercent ?? 100
+        );
+        document.getElementById("ultraCustomMaxTrades").value = Number(
+          ultraAiSettings.customMaxTradesPerDay ?? state.config?.strategies?.ultraAi?.customMaxTradesPerDay ?? 100
+        );
+        document.getElementById("ultraConfidenceThreshold").value = Number(
+          (ultraAiSettings.confidenceThreshold ?? 0.75) * 100
+        );
+        document.getElementById("ultraExecutionMode").value =
+          ultraAiSettings.executionMode || "paper";
+        document.getElementById("emaCustomMaxTrades").value = Number(
+          emaScalpingSettings.customMaxTradesPerDay ?? state.config?.strategies?.emaScalping?.customMaxTradesPerDay ?? 100
+        );
+        document.getElementById("emaCapitalPercent").value = Number(
+          emaScalpingSettings.capitalPercent ?? 100
+        );
+        document.getElementById("emaMinRiskPct").value = Number(
+          (emaScalpingSettings.minRiskPct ?? 0.03) * 100
+        );
+        document.getElementById("emaMaxRiskPct").value = Number(
+          (emaScalpingSettings.maxRiskPct ?? 0.04) * 100
+        );
+        document.getElementById("emaMinRrr").value = Number(
+          emaScalpingSettings.minRrr ?? 2
+        );
+        document.getElementById("emaConfidenceThreshold").value = Number(
+          (emaScalpingSettings.confidenceThreshold ?? 0.75) * 100
+        );
+        toggleStrategyPanels(strategyMode);
+        document.getElementById("autoModeCard").classList.toggle("active", strategyMode === "auto");
+        document.getElementById("ultraModeCard").classList.toggle("active", ultraMode);
+        document.getElementById("emaModeCard").classList.toggle("active", emaMode);
+        const selectedModes = state.modeControls?.selectedModes || [];
+        MODE_CONFIG.forEach((mode) => {
+          const checkbox = document.getElementById(mode.checkboxId);
+          if (checkbox) {
+            checkbox.checked = selectedModes.includes(mode.key);
+          }
+        });
+      }
+
+      function toggleStrategyPanels(strategyMode) {
+        document.getElementById("ultraControlsPanel").style.display =
+          strategyMode === "ultra_ai" ? "flex" : "none";
+        document.getElementById("emaControlsPanel").style.display =
+          strategyMode === "ema_scalping" ? "flex" : "none";
+      }
+
+      async function handleModeChange(mode) {
+        toggleStrategyPanels(mode);
+        try {
+          const payload = readManualForm();
+          payload.strategyMode = mode;
+          payload.manualMode = false;
+          saveManualControlsToStorage(payload);
+          const data = await apiFetch("/api/manual/settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          render(data);
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+      async function saveManualControls() {
+        try {
+          const payload = readManualForm();
+          saveManualControlsToStorage(payload);
+          const data = await apiFetch("/api/manual/settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          render(data);
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+      async function startManualTrading() {
+        try {
+          await saveManualControls();
+          const data = await apiFetch("/api/manual/start", { method: "POST" });
+          render(data);
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+      async function stopManualTrading() {
+        try {
+          const data = await apiFetch("/api/manual/stop", { method: "POST" });
+          render(data);
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+      function renderCapitalGrowth(state) {
+        const cg = state.capitalGrowthPreview;
+        const section = document.getElementById("section-capital");
+        if (!section) {
+          return;
+        }
+        if (!cg) {
+          section.style.display = "none";
+          return;
+        }
+        section.style.display = "";
+        const cfg = state.config?.capitalGrowth;
+        section.style.opacity = cfg && !cfg.enabled ? "0.65" : "1";
+        const pill = document.getElementById("capitalGrowthStatusPill");
+        if (cg.tradingPausedByCapitalGrowth) {
+          pill.textContent = "Trading paused (drawdown)";
+          pill.className = "pill bad";
+        } else if (!cg.enabled) {
+          pill.textContent = "Engine off";
+          pill.className = "pill";
+        } else {
+          pill.textContent = "Active";
+          pill.className = "pill good";
+        }
+        document.getElementById("cgEffectiveCapital").textContent = formatCurrency(cg.effectiveCapital || 0);
+        document.getElementById("cgFullEquity").textContent = formatCurrency(cg.fullEquity || 0);
+        document.getElementById("cgAutoRisk").textContent = `${((cg.autoRiskPct || 0) * 100).toFixed(2)}%`;
+        document.getElementById("cgReinvestLayer").textContent = formatCurrency(cg.reinvestedLayer || 0);
+        document.getElementById("cgCumulativeReinvested").textContent = formatCurrency(
+          cg.cumulativeReinvested || 0
+        );
+        document.getElementById("cgDrawdown").textContent = `${Number(cg.drawdownPct || 0).toFixed(2)}%`;
+        document.getElementById("cgStreaks").textContent = `W ${cg.winStreak || 0} / L ${cg.lossStreak || 0}`;
+        document.getElementById("cgEmaMult").textContent = Number(cg.emaRiskMultiplier || 1).toFixed(3);
+        const pauseLine = document.getElementById("capitalGrowthPauseLine");
+        if (cg.tradingPausedByCapitalGrowth && cg.pauseReason) {
+          pauseLine.style.display = "block";
+          pauseLine.textContent = `${cg.pauseReason}${cg.pausedUntil ? ` — until ${cg.pausedUntil}` : ""}`;
+        } else {
+          pauseLine.style.display = "none";
+          pauseLine.textContent = "";
+        }
+        const canvas = document.getElementById("capitalGrowthChart");
+        if (!canvas || !canvas.getContext) {
+          return;
+        }
+        const ctx2d = canvas.getContext("2d");
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx2d.clearRect(0, 0, w, h);
+        const hist = [...(cg.growthHistory || [])].reverse();
+        if (hist.length < 2) {
+          ctx2d.fillStyle = "rgba(154, 176, 207, 0.55)";
+          ctx2d.font = "14px sans-serif";
+          ctx2d.fillText("Close trades to build capital growth history.", 16, h / 2);
+          return;
+        }
+        const caps = hist.map((p) => Number(p.effectiveCapital || 0));
+        const minC = Math.min(...caps);
+        const maxC = Math.max(...caps);
+        const pad = 14;
+        const span = Math.max(maxC - minC, 1);
+        ctx2d.strokeStyle = "rgba(93, 208, 255, 0.95)";
+        ctx2d.lineWidth = 2;
+        ctx2d.beginPath();
+        hist.forEach((pt, i) => {
+          const x = pad + (i / (hist.length - 1)) * (w - pad * 2);
+          const y = pad + (1 - (Number(pt.effectiveCapital) - minC) / span) * (h - pad * 2);
+          if (i === 0) {
+            ctx2d.moveTo(x, y);
+          } else {
+            ctx2d.lineTo(x, y);
+          }
+        });
+        ctx2d.stroke();
+      }
+
+      function render(state) {
+        latestStateSnapshot = state;
+        const rankings = state.runtime.lastRankings || [];
+        const activeStrategyMode = state.strategyMode || (state.manualMode ? "manual" : "auto");
+        const enabledModes = Object.values(state.modeControls?.modes || {}).filter((mode) => mode.enabled);
+        const activeModeBanner = document.getElementById("activeModeBanner");
+        const activeModeBannerTitle = document.getElementById("activeModeBannerTitle");
+        const activeModeBannerText = document.getElementById("activeModeBannerText");
+        const activeModeStatusChip = document.getElementById("activeModeStatusChip");
+        const dailyTradeLimit =
+          activeStrategyMode === "ema_scalping"
+            ? Number(
+                state.emaScalpingSettings?.customMaxTradesPerDay ||
+                  state.config?.strategies?.emaScalping?.customMaxTradesPerDay ||
+                  0
+              )
+            : activeStrategyMode === "ultra_ai"
+              ? Number(
+                  state.ultraAiSettings?.customMaxTradesPerDay ||
+                    state.config?.strategies?.ultraAi?.customMaxTradesPerDay ||
+                    0
+                )
+              : state.config.capital.effectiveMaxTradesPerDay;
+        document.getElementById("botStatus").textContent = state.status.running ? "Running" : "Stopped";
+        document.getElementById("botStatus").className = `kpi ${state.status.running ? "good" : "bad"}`;
+        document.getElementById("lastScan").textContent = `Last scan: ${state.status.lastScanAt || "Never"}${state.status.lastError ? ` | Error: ${state.status.lastError}` : ""}`;
+        document.getElementById("realizedPnl").textContent = formatCurrency(state.metrics.realizedPnl);
+        document.getElementById("realizedPnl").className = `kpi ${Number(state.metrics.realizedPnl) >= 0 ? "good" : "bad"}`;
+        document.getElementById("winRate").textContent = `Win rate ${state.metrics.winRate}% | Accuracy ${state.metrics.accuracy}%`;
+        document.getElementById("livePnl").textContent = formatCurrency(state.livePnlSummary?.unrealizedPnl || 0);
+        document.getElementById("livePnl").className = `kpi ${Number(state.livePnlSummary?.unrealizedPnl || 0) >= 0 ? "good" : "bad"}`;
+        document.getElementById("livePnlMeta").textContent =
+          `Open trades ${Number(state.livePnlSummary?.openTrades || 0)} | Total live + realized ${formatCurrency(state.livePnlSummary?.totalPnl || 0)}`;
+        document.getElementById("dailyTrades").textContent = `${state.status.dailyTrades}/${dailyTradeLimit}`;
+        document.getElementById("dailyTradesHelp").textContent =
+          activeStrategyMode === "ultra_ai"
+            ? `Ultra AI daily cap is ${dailyTradeLimit} trades (config + saved settings).`
+            : activeStrategyMode === "ema_scalping"
+              ? `EMA mode daily cap is ${dailyTradeLimit} trades.`
+              : `Auto AI daily cap is ${dailyTradeLimit} trades (capital limits).`;
+        document.getElementById("sentimentScore").textContent = Number(state.runtime.lastSentiment?.compositeScore || 0).toFixed(2);
+        document.getElementById("fearGreed").textContent = `Fear & Greed: ${state.runtime.lastSentiment?.fearGreed?.value_classification || "Unavailable"}`;
+
+        document.getElementById("capitalValue").textContent = formatCurrency(state.config.capital.initialINR);
+        document.getElementById("safeMaxCapital").textContent = displayPercent(
+          state.config.capital.safeTradeSizePct * 100
+        );
+        document.getElementById("stopLossValue").textContent = pct(state.config.risk.stopLossPct);
+        document.getElementById("takeProfitValue").textContent = `${displayPercent(
+          (state.config.risk.takeProfitPctMin ?? 0.21) * 100
+        )} – ${displayPercent((state.config.risk.takeProfitPctMax ?? 0.5) * 100)} (min over 20%, confidence-scaled, auto exit)`;
+        renderCapitalGrowth(state);
+        renderOpenPositions(state);
+        applyManualStateToForm(state);
+        renderModeControls(state);
+        renderModeComparison(state);
+        saveManualControlsToStorage({
+          strategyMode: activeStrategyMode,
+          autoSettings: state.autoSettings || {},
+          manualMode: false,
+          emaScalpingSettings: state.emaScalpingSettings || {},
+          ultraAiSettings: state.ultraAiSettings || {}
+        });
+        document.getElementById("activeModeBadge").textContent =
+          activeStrategyMode === "ultra_ai"
+            ? "Ultra AI"
+            : activeStrategyMode === "ema_scalping"
+              ? "EMA Scalping"
+              : "Auto AI";
+        activeModeBanner.className = `active-mode-banner ${activeStrategyMode}`;
+        document.getElementById("strategySummaryMode").textContent =
+          activeStrategyMode === "ultra_ai"
+            ? "Ultra AI"
+            : activeStrategyMode === "ema_scalping"
+              ? "EMA Scalping"
+              : "Auto AI";
+        activeModeBannerTitle.textContent =
+          activeStrategyMode === "ultra_ai"
+            ? "Ultra AI Mode"
+            : activeStrategyMode === "ema_scalping"
+              ? "Professional EMA Scalping"
+              : "Auto AI Engine";
+        activeModeStatusChip.className = `status-chip ${activeStrategyMode}`;
+        activeModeStatusChip.textContent =
+          activeStrategyMode === "ultra_ai"
+            ? "Ultra Active"
+            : activeStrategyMode === "ema_scalping"
+              ? "EMA Active"
+              : "Auto Active";
+        activeModeBannerText.textContent =
+          enabledModes.length > 1
+            ? `${enabledModes.map((mode) => mode.label).join(", ")} are enabled under the global control layer while keeping each existing strategy engine unchanged.`
+            : activeStrategyMode === "ultra_ai"
+            ? "Ultra AI is the only active smart engine. It uses auto approvals and disables Auto AI and EMA mode decisions."
+            : activeStrategyMode === "ema_scalping"
+              ? "EMA scalping is the only active strategy. Signals are auto-approved in paper mode and other modes are disabled."
+              : "Auto AI scanning and ranking are active. Ultra AI and EMA scalping are currently inactive.";
+        document.getElementById("strategySummaryAutoCapital").textContent = displayPercent(
+          state.autoSettings?.capitalPercent
+        );
+        document.getElementById("strategySummaryUltraCapital").textContent = displayPercent(
+          state.ultraAiSettings?.capitalPercent
+        );
+        document.getElementById("strategySummaryDailyLimit").textContent =
+          `${state.status.dailyTrades}/${dailyTradeLimit}`;
+        document.getElementById("strategySummaryEmaConfidence").textContent = displayPercent(
+          Number(state.emaScalpingSettings?.confidenceThreshold || 0) * 100
+        );
+        document.getElementById("autoCapitalPreview").textContent =
+          `Approx. AI trade size: ${formatCurrency(
+            (state.config.capital.initialINR * Number(state.autoSettings?.capitalPercent || 0)) / 100
+          )} at current capital settings.`;
+        document.getElementById("ultraCapitalPreview").textContent =
+          `Approx. Ultra AI deployment: ${formatCurrency(
+            (state.config.capital.initialINR * Number(state.ultraAiSettings?.capitalPercent || 0)) / 100
+          )} | Execution ${String(state.ultraAiSettings?.executionMode || "paper").replace("_", " ")} | Confidence gate ${displayPercent(
+            Number(state.ultraAiSettings?.confidenceThreshold || 0) * 100
+          )}.`;
+        document.getElementById("emaStrategyPreview").textContent =
+          `Capital usage ${displayPercent(state.emaScalpingSettings?.capitalPercent || 0)} | Risk ${displayPercent(
+            (state.emaScalpingSettings?.minRiskPct || 0) * 100
+          )} to ${displayPercent((state.emaScalpingSettings?.maxRiskPct || 0) * 100)} | Min RRR ${Number(
+            state.emaScalpingSettings?.minRrr || 0
+          ).toFixed(1)} | Confidence gate ${displayPercent(
+            Number(state.emaScalpingSettings?.confidenceThreshold || 0) * 100
+          )}.`;
+        document.getElementById("strategyStatus").textContent = activeStrategyMode === "ultra_ai"
+          ? enabledModes.length > 1
+            ? `${enabledModes.length} modes are enabled. Primary mode is ${state.modeControls?.modes?.[activeStrategyMode]?.label || activeStrategyMode}.`
+            : "Ultra AI mode is active with auto approval and full-capital configuration support."
+          : activeStrategyMode === "ema_scalping"
+            ? "Professional EMA scalping mode is active with auto-approval enabled. Auto AI and Ultra AI are inactive."
+            : "Auto AI mode is active. Existing AI trading flow remains unchanged.";
+
+        document.getElementById("intelligenceSummary").innerHTML = `
+          <p><strong>News score:</strong> ${Number(state.runtime.lastSentiment?.newsSentimentScore || 0).toFixed(2)}</p>
+          <p><strong>On-chain score:</strong> ${Number(state.runtime.lastSentiment?.onChainScore || 0).toFixed(2)}</p>
+          <p><strong>Trending:</strong> ${(state.runtime.lastSentiment?.trending || []).join(", ") || "Unavailable"}</p>
+          <p><strong>Mempool fee:</strong> ${state.runtime.lastSentiment?.marketBreadth?.mempoolFastFee || 0} sat/vB</p>
+        `;
+
+        document.getElementById("executionSummary").innerHTML = `
+          <p><strong>Order mode:</strong> ${state.config.trading?.paperOnly ? "Paper only" : "Live orders enabled"}</p>
+          <p><strong>Default fee:</strong> ${pct(state.config.execution.defaultFeeRate)}</p>
+          <p><strong>Default slippage:</strong> ${pct(state.config.execution.defaultSlippageRate)}</p>
+          <p><strong>Top signal cost:</strong> ${
+            rankings[0]?.estimatedExecution
+              ? `${pct(rankings[0].estimatedExecution.feeRate)} fee | ${pct(rankings[0].estimatedExecution.slippageRate)} slippage`
+              : "No active signal estimate"
+          }</p>
+        `;
+
+        const disabledSymbols = state.learning?.disabledSymbols || [];
+        const disabledExchanges = state.learning?.disabledExchanges || [];
+        const marketIntelligence = state.runtime.lastMarketIntelligence || {};
+        document.getElementById("learningSummary").innerHTML = `
+          <p><strong>Status:</strong> ${
+            state.learning?.isPaused
+              ? `Paused until ${state.learning?.pausedUntil || "-"}`
+              : state.learning?.gateBlocked
+                ? "Signal gating active"
+                : "Active"
+          }</p>
+          <p><strong>Recent win rate:</strong> ${Number(state.learning?.metrics?.recentWinRate || 0).toFixed(2)}%</p>
+          <p><strong>Recent avg pnl:</strong> ${Number(state.learning?.metrics?.recentAvgPnlPct || 0).toFixed(2)}%</p>
+          <p><strong>Loss streak:</strong> ${state.learning?.metrics?.lossStreak || 0}</p>
+          <p><strong>Dynamic min confidence:</strong> ${Number(state.learning?.dynamicMinConfidence || 0).toFixed(2)}</p>
+          <p><strong>Disabled symbols:</strong> ${
+            disabledSymbols.length ? disabledSymbols.map((item) => item.key).join(", ") : "None"
+          }</p>
+          <p><strong>Disabled exchanges:</strong> ${
+            disabledExchanges.length ? disabledExchanges.map((item) => item.key).join(", ") : "None"
+          }</p>
+        `;
+
+        document.getElementById("marketIntelligenceSummary").innerHTML = `
+          <p><strong>Global sentiment:</strong> ${Number(marketIntelligence.overview?.globalSentiment || 0).toFixed(2)}</p>
+          <p><strong>Market trend:</strong> ${Number((marketIntelligence.overview?.marketTrend || 0) * 100).toFixed(2)}%</p>
+          <p><strong>Average confidence:</strong> ${Number((marketIntelligence.overview?.averageConfidence || 0) * 100).toFixed(2)}%</p>
+          <p><strong>Market risk:</strong> ${Number((marketIntelligence.overview?.marketRisk || 0) * 100).toFixed(2)}%</p>
+          <p><strong>Buy setups:</strong> ${marketIntelligence.overview?.buySetups || 0}</p>
+        `;
+
+        const emaBest = state.runtime.lastEmaScalping?.bestOpportunity || null;
+        document.getElementById("emaScalpingSummary").innerHTML = emaBest
+          ? `
+            <p><strong>Symbol:</strong> ${emaBest.symbol}</p>
+            <p><strong>Trend Direction:</strong> ${emaBest.trendDirection}</p>
+            <p><strong>EMA Status:</strong> ${emaBest.tradeDecision}</p>
+            <p><strong>Angle:</strong> ${Number(emaBest.setup?.emaAngle || 0).toFixed(2)}&deg;</p>
+            <p><strong>RRR:</strong> ${Number(emaBest.setup?.riskPlan?.rrr || 0).toFixed(2)}</p>
+            <p><strong>Confidence Score:</strong> ${(Number(emaBest.confidenceScore || 0) * 100).toFixed(1)}%</p>
+            <p><strong>Scalping Mode Active:</strong> ${emaBest.scalpingModeActive ? "Yes" : "No"}</p>
+          `
+          : "<p>No EMA scalping setup is active yet.</p>";
+
+        const ultraBest = state.runtime.lastUltraAi?.bestTrade || null;
+        const ultraMarket = state.runtime.lastUltraAi?.marketSummary || {};
+        const ultraSources = state.runtime.lastUltraAi?.dataSources || {};
+        document.getElementById("ultraAiSummary").innerHTML = ultraBest
+          ? `
+            <p><strong>Symbol:</strong> ${ultraBest.symbol}</p>
+            <p><strong>Decision:</strong> ${ultraBest.decision}</p>
+            <p><strong>Ultra Score:</strong> ${(Number(ultraBest.ultraScore || 0) * 100).toFixed(1)}%</p>
+            <p><strong>Confidence:</strong> ${(Number(ultraBest.confidenceScore || 0) * 100).toFixed(1)}%</p>
+            <p><strong>Order Book:</strong> ${Number(ultraBest.liveData?.binance?.orderBookImbalance || 0).toFixed(4)}</p>
+            <p><strong>Large Trades:</strong> ${Number(ultraBest.liveData?.binance?.largeTradeCount || 0)}</p>
+            <p><strong>Funding Rate:</strong> ${pct(ultraBest.liveData?.binance?.fundingRate || 0)}</p>
+            <p><strong>Open Interest:</strong> ${formatCompact(ultraBest.liveData?.binance?.openInterestUsd || 0)}</p>
+            <p><strong>Whale Events:</strong> ${Number(ultraBest.liveData?.whaleSignal?.eventCount || 0)}</p>
+            <p><strong>BTC Dominance:</strong> ${Number(ultraMarket.btcDominance || 0).toFixed(2)}%</p>
+            <p><strong>Live Sources:</strong> Binance ${ultraSources.exchange ? "on" : "off"}, Whale ${ultraSources.whaleAlertLive ? "on" : "key needed"}, Etherscan ${ultraSources.etherscanLive ? "on" : "key needed"}, CoinGecko ${ultraSources.coingeckoLive ? "on" : "off"}, CMC ${ultraSources.coinmarketcapLive ? "on" : "key needed"}</p>
+          `
+          : "<p>No Ultra AI live setup is active yet.</p>";
+
+        const topOpportunities = (marketIntelligence.topOpportunities || []).slice(0, 5);
+        document.getElementById("topOpportunitiesList").innerHTML = topOpportunities.length
+          ? topOpportunities
+              .map(
+                (item, index) => `
+                  <div class="opportunity-item">
+                    <p><strong>${index + 1}. ${item.symbol}</strong> <span class="pill" style="margin-left:8px;">${item.exchange}</span></p>
+                    <p class="muted small">Score ${(Number(item.coinScore || 0) * 100).toFixed(1)} | Confidence ${(Number(item.confidenceScore || 0) * 100).toFixed(1)}% | ${item.tradeQuality}</p>
+                    <p class="muted small">${(item.reasons || []).join(", ") || "Waiting for confirmation"}</p>
+                  </div>
+                `
+              )
+              .join("")
+          : '<p class="muted">No high-quality opportunities yet.</p>';
+
+        const portfolioRows = [
+          ["BTC", state.portfolio.targets.BTC, state.portfolio.current.BTC],
+          ["ETH", state.portfolio.targets.ETH, state.portfolio.current.ETH],
+          ["ALT", state.portfolio.targets.ALT, state.portfolio.current.ALT]
+        ]
+          .map(
+            ([bucket, target, current]) =>
+              `<tr><td>${bucket}</td><td>${formatCurrency(target)}</td><td>${formatCurrency(current)}</td></tr>`
+          )
+          .join("");
+        document.getElementById("portfolioTable").innerHTML = portfolioRows;
+
+        const approvals = state.pendingApprovals.length
+          ? state.pendingApprovals
+              .map(
+                (approval) => `
+                  <div class="approval">
+                    <span class="pill">${approval.status}</span>
+                    <span class="pill" style="margin-left:8px;">${approval.signal.strategyMode || "auto"}</span>
+                    <p style="margin-top:10px;"><strong>${approval.signal.exchange} ${approval.signal.symbol}</strong></p>
+                    <p class="muted small">Side ${String(approval.signal.side || "buy").toUpperCase()} | Price ${approval.signal.price} | Notional ${formatCurrency(approval.signal.notional)} | Confidence ${approval.signal.prediction.confidence}</p>
+                    <p class="muted small">Capital usage ${displayPercent(approval.signal.strategySettings?.capitalPercent || state.autoSettings?.capitalPercent || 0)}${
+                      approval.signal.strategyMode === "ema_scalping" &&
+                      approval.signal.strategySettings?.allocatedCapitalPercent
+                        ? ` | Allocated ${displayPercent(approval.signal.strategySettings.allocatedCapitalPercent)}`
+                        : ""
+                    }</p>
+                    <p class="muted small">SL ${approval.signal.exitPlan.stopLoss} | TP ${approval.signal.exitPlan.takeProfit}</p>
+                    <p class="muted small">Costs: ${pct(approval.signal.estimatedExecution?.feeRate || 0)} fee | ${pct(approval.signal.estimatedExecution?.slippageRate || 0)} slippage</p>
+                    ${
+                      approval.status === "pending"
+                        ? `<div class="approval-actions">
+                            <button class="primary" onclick="approve('${approval.id}')">Approve</button>
+                            <button class="danger" onclick="reject('${approval.id}')">Reject</button>
+                          </div>`
+                        : ""
+                    }
+                  </div>
+                `
+              )
+              .join("")
+          : '<p class="muted">No pending approvals.</p>';
+        document.getElementById("approvalList").innerHTML = approvals;
+
+        const streamPriceMap = new Map((lastStream.scanner || []).map((item) => [`${item.exchange}:${item.symbol}`, item]));
+        const scanRows = rankings
+          .map(
+            (item) => {
+              const stream = streamPriceMap.get(`${item.exchange}:${item.symbol}`);
+              const price = stream?.fiveMinutePrice || item.timeframes["5m"]?.metrics.latestPrice || item.ticker?.last || 0;
+              return `
+                <tr class="clickable-row" onclick="openCoinChart('${item.exchange}', '${item.symbol}')">
+                  <td>${item.exchange}</td>
+                  <td>${item.symbol}</td>
+                  <td>${Number(item.score).toFixed(2)}</td>
+                  <td>${(Number(item.rankingFactors.fifteenMinuteTrend || 0) * 100).toFixed(2)}%</td>
+                  <td>${(Number(item.rankingFactors.fiveMinuteMomentum || 0) * 100).toFixed(2)}%</td>
+                  <td>${Number(item.rankingFactors.whaleScore || 0).toFixed(2)}</td>
+                  <td>${Number(price).toFixed(4)}</td>
+                </tr>
+              `;
+            }
+          )
+          .join("");
+        document.getElementById("scannerTable").innerHTML = scanRows || '<tr><td colspan="7" class="muted">No scanner data yet.</td></tr>';
+
+        const historyRows = state.trades
+          .map(
+            (trade) => {
+              const riskAmount =
+                Number(trade.strategySettings?.targetRiskAmount || 0) > 0
+                  ? Number(trade.strategySettings.targetRiskAmount)
+                  : Number(
+                      (Math.abs((Number(trade.entryPrice || 0) - Number(trade.stopLoss || 0)) * Number(trade.amount || 0))).toFixed(2)
+                    );
+              const capitalUsed =
+                Number(trade.strategySettings?.capitalUsed || 0) > 0
+                  ? Number(trade.strategySettings.capitalUsed)
+                  : Number(trade.notional || 0);
+              const tid = trade.id ? String(trade.id).replace(/'/g, "\\'") : "";
+              return `
+              <tr>
+                <td>${trade.openedAt || "-"}</td>
+                <td>${trade.exchange}</td>
+                <td>${trade.symbol}</td>
+                <td>${trade.status}</td>
+                <td>${trade.requestedEntryPrice || trade.entryPrice || "-"}</td>
+                <td>${trade.entryPrice || "-"}</td>
+                <td>${formatCurrency(capitalUsed || 0)}</td>
+                <td>${formatCurrency(riskAmount || 0)}</td>
+                <td>${Number(trade.amount || 0).toFixed(6)}</td>
+                <td>${String(trade.side || "buy").toUpperCase()}</td>
+                <td>${trade.status === "open" ? (trade.livePrice || "-") : (trade.exitPrice || "-")}</td>
+                <td class="${Number(trade.status === "open" ? trade.livePnl || 0 : trade.pnl || 0) >= 0 ? "good" : "bad"}">${
+                  trade.status === "open"
+                    ? `${formatCurrency(trade.livePnl || 0)} (live)`
+                    : trade.pnl
+                      ? formatCurrency(trade.pnl)
+                      : "-"
+                }</td>
+                <td>${trade.status === "open" ? "live_open" : (trade.exitReason || "-")}</td>
+                <td class="trade-actions">${
+                  tid
+                    ? `<button type="button" class="btn-view" onclick="openTradeDetail('${tid}')">View</button>`
+                    : '<span class="muted small">—</span>'
+                }</td>
+              </tr>
+            `;
+            }
+          )
+          .join("");
+        document.getElementById("historyTable").innerHTML =
+          historyRows || '<tr><td colspan="14" class="muted">No trades recorded yet.</td></tr>';
+        const thc = document.getElementById("tradeHistoryCountPill");
+        if (thc) {
+          const n = state.trades.length;
+          thc.textContent = `${n} trade${n === 1 ? "" : "s"}`;
+        }
+
+        syncChartSelectors(state);
+        refreshSelectedChart().catch(() => {});
+
+        if (state.runtime.lastBacktest) {
+          document.getElementById("backtestSummary").innerHTML = `
+            <p><strong>Trades Tested:</strong> ${state.runtime.lastBacktest.tradesTested}</p>
+            <p><strong>Win Rate:</strong> ${state.runtime.lastBacktest.winRate}%</p>
+            <p><strong>Accuracy:</strong> ${state.runtime.lastBacktest.accuracy}%</p>
+            <p><strong>Total Return:</strong> ${state.runtime.lastBacktest.totalPnlPct}%</p>
+          `;
+        }
+      }
+
+      function renderModeControls(state) {
+        const modes = state.modeControls?.modes || {};
+        const enabledModes = Object.values(modes).filter((mode) => mode.enabled);
+        document.getElementById("modeControlStatus").textContent = enabledModes.length
+          ? `${enabledModes.length} mode(s) enabled`
+          : "All modes stopped";
+
+        MODE_CONFIG.forEach((mode) => {
+          const current = modes[mode.key] || {};
+          const stateNode = document.getElementById(mode.stateId);
+          if (!stateNode) {
+            return;
+          }
+          stateNode.textContent = current.enabled
+            ? `${mode.label} is running${state.modeControls?.primaryMode === mode.key ? " as primary mode" : ""}.`
+            : `${mode.label} is stopped.`;
+        });
+      }
+
+      function renderModeComparison(state) {
+        const comparison = state.modePerformance || {};
+        const modes = comparison.modes || [];
+        document.getElementById("bestModeLabel").textContent =
+          comparison.bestMode ? `${comparison.bestMode.label} · ${comparison.bestMode.title}` : "-";
+        document.getElementById("worstModeLabel").textContent =
+          comparison.worstMode ? `${comparison.worstMode.label} · ${comparison.worstMode.title}` : "-";
+        document.getElementById("modeComparisonStatus").textContent = modes.some((mode) => mode.totalTrades > 0)
+          ? "Performance comparison live"
+          : "No completed mode history yet";
+        document.getElementById("modeComparisonTable").innerHTML = modes
+          .map((mode) => {
+            const isBest = comparison.bestMode?.mode === mode.mode;
+            const isWorst = comparison.worstMode?.mode === mode.mode;
+            const badge = isBest ? "Best" : isWorst ? "Worst" : "Tracked";
+            return `
+              <tr>
+                <td>${mode.label} <span class="pill" style="margin-left:8px;">${badge}</span><div class="muted small">${mode.title}</div></td>
+                <td>${formatCurrency(mode.profit)}</td>
+                <td>${formatCurrency(mode.loss)}</td>
+                <td>${displayPercent(mode.winRate)}</td>
+                <td>${mode.totalTrades}</td>
+                <td>${formatCurrency(mode.drawdown)}</td>
+                <td class="${Number(mode.netPnl || 0) >= 0 ? "good" : "bad"}">${formatCurrency(mode.netPnl)}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      async function bootstrap() {
+        try {
+          document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+              closeTradeDetail();
+            }
+          });
+          document.getElementById("performanceLogDate").value = new Date().toISOString().slice(0, 10);
+          const savedManual = loadManualControlsFromStorage();
+          if (savedManual) {
+            applyManualStateToForm(savedManual);
+          }
+          await checkAuth();
+          if (isAuthenticated) {
+            connectSocket();
+            await fetchState();
+            startChartRefreshLoop();
+            setInterval(fetchState, 10000);
+          }
+        } catch (error) {
+          showAuthOverlay(true, error.message);
+        }
+      }
+
+      bootstrap();
+    </script>
+  </body>
+</html>

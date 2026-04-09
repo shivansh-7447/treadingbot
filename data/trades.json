@@ -1,0 +1,17 @@
+{
+  "trades": [],
+  "pendingApprovals": [],
+  "signals": [],
+  "status": {
+    "running": true,
+    "lastScanAt": "2026-04-01T10:35:37.929Z",
+    "dailyTrades": 0,
+    "lastError": null,
+    "currentDay": "2026-04-01"
+  },
+  "metrics": {
+    "realizedPnl": 0,
+    "winRate": 52.63,
+    "accuracy": 52.63
+  }
+}
