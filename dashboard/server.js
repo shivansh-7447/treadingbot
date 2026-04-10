@@ -1,3 +1,4 @@
+const fs = require("fs");
 const path = require("path");
 const http = require("http");
 const express = require("express");
@@ -294,10 +295,19 @@ app.use((req, res, next) => {
 });
 
 const publicDir = path.join(__dirname, "..", "public");
-app.use(express.static(publicDir));
+const publicIndex = path.join(publicDir, "index.html");
+const dashboardIndex = path.join(__dirname, "index.html");
+const uiRoot = fs.existsSync(publicIndex) ? publicDir : __dirname;
+const indexHtmlPath = fs.existsSync(publicIndex) ? publicIndex : dashboardIndex;
+if (!fs.existsSync(indexHtmlPath)) {
+  throw new Error(
+    `Dashboard UI missing: add ${publicIndex} (preferred for Vercel) or ${dashboardIndex}.`
+  );
+}
+app.use(express.static(uiRoot));
 
 app.get("*", (req, res) => {
-  res.sendFile(path.join(publicDir, "index.html"));
+  res.sendFile(indexHtmlPath);
 });
 
 // Vercel serverless runs the Express app only (no long-lived listen / WS server).
