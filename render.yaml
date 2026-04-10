@@ -1,9 +1,8 @@
-# Match these in the Render dashboard (if you are not using Blueprint):
-#   Build: npm run render:build
-#   Start: npm start   ← NOT node bot.js (no web server)
+# Render dashboard (manual Web Service) — TWO different fields:
+#   Build Command:  npm run build     ← installs deps + compiles sqlite3 (NEVER use npm start here)
+#   Start Command:  npm start         ← runs the server (NOT node bot.js)
 #
-# sqlite3 prebuilds can need newer glibc than Render → GLIBC_2.38 errors. render:build
-# compiles sqlite3 on Render so the binary matches their OS.
+# If Build is set to npm start, express will be missing — start is not a build step.
 #
 # "invalid ELF header" = node_modules pushed from Windows — remove from git.
 
@@ -12,7 +11,7 @@ services:
     name: crypto-ai-bot
     runtime: node
     plan: free
-    buildCommand: npm run render:build
+    buildCommand: npm run build
     startCommand: npm start
     healthCheckPath: /api/auth/status
     envVars:
