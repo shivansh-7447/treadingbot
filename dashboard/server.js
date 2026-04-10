@@ -29,6 +29,7 @@ const sessionMiddleware = session({
 app.use(sessionMiddleware);
 
 function broadcastJson(payload) {
+  if (!wss) return;
   for (const client of wss.clients) {
     if (client.readyState === 1) {
       client.send(JSON.stringify(payload));
@@ -292,36 +293,42 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.static(__dirname));
+const publicDir = path.join(__dirname, "..", "public");
+app.use(express.static(publicDir));
 
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.sendFile(path.join(publicDir, "index.html"));
 });
 
-wss = new WebSocketServer({ server, path: "/ws" });
-wss.on("connection", async (socket) => {
-  try {
-    socket.send(JSON.stringify(await buildRealtimePayload()));
-  } catch (error) {
-    socket.send(JSON.stringify({ type: "error", error: error.message }));
-  }
-});
+// Vercel serverless runs the Express app only (no long-lived listen / WS server).
+if (!process.env.VERCEL) {
+  wss = new WebSocketServer({ server, path: "/ws" });
+  wss.on("connection", async (socket) => {
+    try {
+      socket.send(JSON.stringify(await buildRealtimePayload()));
+    } catch (error) {
+      socket.send(JSON.stringify({ type: "error", error: error.message }));
+    }
+  });
 
-setInterval(async () => {
-  if (!config.realtime.websocketEnabled || !wss.clients.size) {
-    return;
-  }
+  setInterval(async () => {
+    if (!config.realtime.websocketEnabled || !wss.clients.size) {
+      return;
+    }
 
-  try {
-    broadcastJson(await buildRealtimePayload());
-  } catch (error) {
-    broadcastJson({ type: "error", error: error.message });
-  }
-}, config.realtime.broadcastIntervalMs);
+    try {
+      broadcastJson(await buildRealtimePayload());
+    } catch (error) {
+      broadcastJson({ type: "error", error: error.message });
+    }
+  }, config.realtime.broadcastIntervalMs);
 
-server.listen(config.app.port, () => {
-  console.log(`Dashboard running on http://localhost:${config.app.port}`);
-  console.log(
-    "Manual trade exit: POST /api/close-position or POST /api/manual-exit with JSON body { \"tradeId\": \"...\" }"
-  );
-});
+  server.listen(config.app.port, () => {
+    console.log(`Dashboard running on http://localhost:${config.app.port}`);
+    console.log(
+      "Manual trade exit: POST /api/close-position or POST /api/manual-exit with JSON body { \"tradeId\": \"...\" }"
+    );
+  });
+}
+
+module.exports = app;
