@@ -8,6 +8,7 @@
     "start": "node server.js",
     "bot": "node bot.js",
     "dashboard": "node server.js",
+    "render:build": "npm install && npm rebuild sqlite3 --build-from-source",
     "check": "node -e \"require('./bot'); console.log('Bot modules loaded successfully.')\"",
     "test": "node --test"
   },

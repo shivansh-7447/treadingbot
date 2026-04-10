@@ -1,17 +1,18 @@
-# Dashboard + API: MUST use `npm start` (server.js). Do NOT use `node bot.js` — no HTTP server.
+# Match these in the Render dashboard (if you are not using Blueprint):
+#   Build: npm run render:build
+#   Start: npm start   ← NOT node bot.js (no web server)
 #
-# If you see sqlite3 "invalid ELF header": node_modules was committed from Windows.
-# Fix: remove node_modules from git, push, let Render run `npm install` on Linux.
+# sqlite3 prebuilds can need newer glibc than Render → GLIBC_2.38 errors. render:build
+# compiles sqlite3 on Render so the binary matches their OS.
 #
-# Minimum secrets on Render: SESSION_SECRET, DASHBOARD_PASSWORD (and API keys if needed).
-# Optional tuning lives in .env.defaults (committed) — loaded by config.js.
+# "invalid ELF header" = node_modules pushed from Windows — remove from git.
 
 services:
   - type: web
     name: crypto-ai-bot
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm run render:build
     startCommand: npm start
     healthCheckPath: /api/auth/status
     envVars:
