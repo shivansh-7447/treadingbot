@@ -1,0 +1,19 @@
+# Dashboard + API: MUST use `npm start` (server.js). Do NOT use `node bot.js` — no HTTP server.
+#
+# If you see sqlite3 "invalid ELF header": node_modules was committed from Windows.
+# Fix: remove node_modules from git, push, let Render run `npm install` on Linux.
+#
+# Minimum secrets on Render: SESSION_SECRET, DASHBOARD_PASSWORD (and API keys if needed).
+# Optional tuning lives in .env.defaults (committed) — loaded by config.js.
+
+services:
+  - type: web
+    name: crypto-ai-bot
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/auth/status
+    envVars:
+      - key: NODE_VERSION
+        value: "20.18.1"

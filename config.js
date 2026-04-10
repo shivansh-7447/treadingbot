@@ -1,7 +1,10 @@
 const path = require("path");
 const dotenv = require("dotenv");
 
+// Local secrets: .env (gitignored). Optional defaults: .env.defaults (committed) fills
+// any key not already set — so Render needs only secrets (e.g. SESSION_SECRET, keys).
 dotenv.config({ path: path.join(__dirname, ".env") });
+dotenv.config({ path: path.join(__dirname, ".env.defaults") });
 
 const parseNumber = (value, fallback) => {
   const parsed = Number(value);
